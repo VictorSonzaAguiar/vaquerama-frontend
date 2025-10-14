@@ -1,0 +1,34 @@
+/* src/styles/global.css */
+
+/* VARIÁVEIS DE COR (DARK MODE - Estilo Instagram/Vaquejada) */
+:root {
+    --bg-dark: #000000;
+    --card-bg: #1E1E1E;
+    --text-color: #FAFAFA;
+    --subtext-color: #A8A8A8;
+    --accent-color: #D4AF37; /* Dourado da Vaquejada */
+    --border-color: #262626;
+    --hover-color: #383838;
+}
+
+/* Estilo Básico do Corpo */
+body {
+    background-color: var(--bg-dark) !important;
+    color: var(--text-color) !important;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Evita scroll lateral */
+}
+
+a {
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+/* Estilos de utilidade para o tema */
+.bg-card { background-color: var(--card-bg) !important; }
+.text-accent { color: var(--accent-color) !important; }
+.border-custom { border-color: var(--border-color) !important; }
+.text-subtle { color: var(--subtext-color) !important; }

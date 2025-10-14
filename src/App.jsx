@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute'; // <-- NOVO: Importa o Protetor
 
 import Feed from './pages/Feed';
 import Login from './pages/Login';
@@ -30,19 +31,18 @@ const LayoutWrapper = ({ children }) => {
 function App() {
   return (
     <Router>
-        {/* Envolve as rotas com o componente que decide o layout */}
         <LayoutWrapper>
             <Routes>
               
-              {/* Rotas Públicas (sem layout) */}
+              {/* Rotas Públicas */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               
-              {/* Rotas Protegidas (com layout) */}
-              <Route path="/" element={<Feed />} /> {/* Rota principal é o Feed */}
-              <Route path="/feed" element={<Feed />} />
-              <Route path="/profile/:id" element={<Profile />} />
-              <Route path="/postar" element={<div>Criar Post Componente...</div>} />
+              {/* Rotas PROTEGIDAS (Acesso apenas com Token) */}
+              <Route path="/" element={<ProtectedRoute><Feed /></ProtectedRoute>} /> 
+              <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+              <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/postar" element={<ProtectedRoute><div>Criar Post Componente...</div></ProtectedRoute>} />
               
               {/* Rota 404 (Não encontrada) */}
               <Route path="*" element={<div>Página Não Encontrada (404)</div>} />

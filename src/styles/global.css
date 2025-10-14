@@ -74,6 +74,76 @@ a {
     padding-bottom: 50px;
 }
 
+/* ... (Seu CSS da Sidebar e variáveis Dark Mode está acima) ... */
+
+/* Ajuste do Main Content para evitar sobreposição */
+.main-content {
+    margin-left: 280px; 
+    padding-top: 20px;
+    padding-bottom: 50px;
+}
+
+/* --- ESTILOS DO LAYOUT DE 3 COLUNAS --- */
+/* (Garante que Feed e Sidebar se alinhem bem) */
+
+.feed-col-style {
+    max-width: 630px; /* Largura máxima para o feed (padrão Instagram) */
+    padding-right: 28px !important;
+}
+.sidebar-col-style-right {
+    padding-left: 30px !important;
+    padding-right: 20px !important;
+    max-width: 320px;
+}
+.sidebar-sticky {
+    position: sticky;
+    top: 20px; 
+}
+
+
+/* --- RESPONSIVIDADE (Mobile/Tablet) --- */
+
+/* Abaixo de telas grandes (Large), esconde a sidebar esquerda */
+@media (max-width: 992px) {
+    #sidebar-left {
+        display: none !important;
+    }
+    .main-content {
+        margin-left: 0; 
+    }
+    .feed-col-style {
+        padding-right: 0 !important; /* Remove o padding extra em mobile/tablet */
+    }
+}
+
+/* Abaixo de telas médias (Tablet), esconde a sidebar direita */
+@media (max-width: 768px) {
+    .sidebar-col-style-right {
+        display: none !important;
+    }
+    .feed-col-style {
+        max-width: 100%; /* Ocupa a largura total */
+        padding: 0 10px !important; /* Adiciona padding nas laterais do celular */
+    }
+    .main-content {
+        padding-top: 10px;
+        padding-bottom: 60px; /* Espaço para futura nav de baixo */
+    }
+}
+
+
+/* --- ESTILO DO FEED DE POSTAGENS --- */
+
+#app-content {
+    /* Garante que o conteúdo do feed comece logo após a margem superior */
+    padding-top: 5px; 
+}
+
+/* Estilo para quando não houver posts */
+.empty-feed-message {
+    margin-top: 80px;
+}
+
 /* --- RESPONSIVIDADE (Mobile/Tablet) --- */
 
 /* Abaixo de telas grandes (Large), esconde a sidebar e move o conteúdo */

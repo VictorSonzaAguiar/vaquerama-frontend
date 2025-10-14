@@ -1,0 +1,1 @@
+const Register = () => { return <h1 className="text-white mt-5">Página de Cadastro</h1>; }; export default Register;

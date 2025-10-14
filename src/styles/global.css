@@ -32,3 +32,56 @@ a {
 .text-accent { color: var(--accent-color) !important; }
 .border-custom { border-color: var(--border-color) !important; }
 .text-subtle { color: var(--subtext-color) !important; }
+
+/* ... (Código do Dark Mode que você já tem) */
+
+/* Estilo da Sidebar Lateral Fixa (Inspirado no Instagram) */
+#sidebar-left {
+    width: 280px; /* Largura padrão */
+    height: 100vh;
+    position: fixed; /* Fixo na tela */
+    top: 0;
+    left: 0;
+    background-color: var(--bg-dark);
+    border-right: 1px solid var(--border-color);
+    padding: 20px 0;
+    z-index: 1000;
+}
+
+#sidebar-left .nav-link {
+    color: var(--text-color);
+    border-radius: 25px;
+    padding: 12px 15px;
+    margin-bottom: 5px;
+    transition: background-color 0.2s, font-weight 0.2s;
+}
+
+#sidebar-left .nav-link:hover {
+    background-color: var(--hover-color);
+}
+
+#sidebar-left .nav-link.active {
+    /* Destaca o link ativo */
+    font-weight: bold;
+    color: var(--text-color); /* Mantém branco, mas o bold já destaca */
+}
+
+/* Espaço para o Conteúdo Principal (Main) */
+.main-content {
+    /* Cria o espaço para que o main fique ao lado da sidebar fixa */
+    margin-left: 280px; 
+    padding-top: 20px;
+    padding-bottom: 50px;
+}
+
+/* --- RESPONSIVIDADE (Mobile/Tablet) --- */
+
+/* Abaixo de telas grandes (Large), esconde a sidebar e move o conteúdo */
+@media (max-width: 992px) {
+    #sidebar-left {
+        display: none !important; /* Esconde a sidebar */
+    }
+    .main-content {
+        margin-left: 0; /* Remove o margin para centralizar */
+    }
+}

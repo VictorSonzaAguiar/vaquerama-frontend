@@ -1,0 +1,1 @@
+const Feed = () => { return <h1 className="text-white mt-5">Página do Feed</h1>; }; export default Feed;

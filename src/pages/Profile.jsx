@@ -1,0 +1,1 @@
+const Profile = () => { return <h1 className="text-white mt-5">Página de Perfil</h1>; }; export default Profile;

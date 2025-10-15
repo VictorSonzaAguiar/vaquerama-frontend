@@ -460,46 +460,43 @@ a {
     transform: scale(1.05);
 }
 
-/* src/styles/global.css - Adicione ao final */
+/* src/styles/global.css - ADICIONAR AO FINAL */
 
 /* ========================================= */
-/* ESTILOS MOBILE - BOTTOM NAV */
+/* ESTILOS MOBILE - BOTTOM NAV (ETAPA 18.2) */
 /* ========================================= */
 
 .bottom-nav {
-    /* Cor de fundo igual ao card, mas mais opaca para destacar */
+    /* Fundo escuro, acima de tudo (z-index) */
     background-color: var(--card-bg); 
     border-top: 1px solid var(--border-color);
     height: 56px; /* Altura padrão para navegação mobile */
-    z-index: 1030; /* Acima de outros elementos, como a modal do Bootstrap */
+    z-index: 1030; 
     padding: 0 10px; 
 }
 
 .nav-link-mobile {
-    color: var(--text-subtle) !important;
+    color: var(--subtext-color) !important;
     padding: 5px 0;
     transition: color 0.2s;
     text-decoration: none;
+    line-height: 1; 
 }
 
-.nav-link-mobile i {
-    font-size: 1.5rem !important;
-}
-
-/* Estado Ativo/Hover */
+/* Estado Ativo (Dourado da Vaquejada) */
 .nav-link-mobile:hover,
 .nav-link-mobile.active-mobile-link {
     color: var(--accent-color) !important;
 }
 
-/* Espaçamento para o conteúdo não ficar por baixo da bottom nav */
+/* CORREÇÃO DE LAYOUT: Espaçamento para o conteúdo não ficar por baixo da bottom nav */
 @media (max-width: 991.98px) {
     .main-content {
         /* Adiciona um padding na parte de baixo igual à altura da nav */
         padding-bottom: 56px; 
     }
     
-    /* Garante que o conteúdo vá até o topo em mobile, já que não tem sidebar fixo */
+    /* Garante que o conteúdo vá até o topo em mobile */
     #app-content {
         padding-top: 0 !important;
     }

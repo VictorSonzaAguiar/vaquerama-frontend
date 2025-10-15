@@ -2,13 +2,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import BottomNav from './BottomNav'; // <--- IMPORTADO
+import BottomNav from './BottomNav'; // <--- 1. Importa a navegação mobile
 
 const AppLayout = ({ children }) => {
   return (
     <div className="d-flex">
       
-      {/* 1. Sidebar Fixo da Esquerda (Menu - d-lg-block) */}
+      {/* 1. Sidebar Fixo da Esquerda (Menu) */}
       <Sidebar />
       
       {/* 2. Wrapper Principal para o Layout de 2 Colunas (Feed + Sugestões) */}
@@ -20,10 +20,9 @@ const AppLayout = ({ children }) => {
             <div className="col-lg-1 d-none d-lg-block"></div>
             
             {/* Coluna Central: FEED DE NOTÍCIAS (Responsivo) */}
-            {/* O FEED será maior em Mobile (col-12) e em Desktop (col-md-7) */}
             <div className="col-12 col-md-8 col-lg-7 px-0 feed-col-style">
                 <div id="app-content">
-                    {children} {/* Aqui entra a página Feed.jsx */}
+                    {children} {/* Aqui entra a página, como Feed.jsx ou Profile.jsx */}
                 </div>
             </div>
 
@@ -43,10 +42,10 @@ const AppLayout = ({ children }) => {
           </div>
         </div>
       </main>
-       
-      {/* 3. Navegação Bottom-Nav Mobile (Visível apenas em mobile) */}
+      
+      {/* 3. Bottom-Nav Mobile (Visível apenas em Mobile) */}
       <BottomNav />
-
+       
     </div>
   );
 };

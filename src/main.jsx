@@ -2,16 +2,15 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom'; // <--- AGORA IMPORTADO CORRETAMENTE
+import { BrowserRouter } from 'react-router-dom'; // <--- O ÚNICO LUGAR ONDE SE IMPORTA ISSO
 import App from './App.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/global.css'; 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* Envolve o App com o BrowserRouter para habilitar o roteamento */}
-    <BrowserRouter>
-      <App />
+    <BrowserRouter> {/* <--- O ÚNICO LUGAR ONDE SE USA ESTA TAG */}
+        <App />
     </BrowserRouter>
   </React.StrictMode>,
 );

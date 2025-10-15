@@ -1,10 +1,10 @@
 // =========================================================
-// 📄 src/pages/Profile.jsx - FINAL COMPLETO
+// 📄 src/pages/Profile.jsx - FINAL COMPLETO E CORRIGIDO
 // Inclui: seguir/deixar de seguir + posts do usuário
 // =========================================================
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom'; // <--- IMPORTAÇÃO ÚNICA E CORRETA
 import { Container, Row, Col, Button, Image } from 'react-bootstrap';
 import PostCard from '../components/PostCard'; // Componente de post padrão
 import PostCardMini from '../components/PostCardMini'; // Miniatura (para galeria)
@@ -26,6 +26,7 @@ const Profile = () => {
 
   // Usuário logado e token (para seguir)
   const { user: loggedUser, token } = useAuth();
+  // Verifica se o ID do usuário logado é igual ao ID do perfil na URL
   const isOwner = loggedUser && loggedUser.id === parseInt(id);
 
   // =========================================================
@@ -95,7 +96,8 @@ const Profile = () => {
     }));
 
     try {
-      await apiClient.post(`users/${id}/follow`);
+      // Endpoint para seguir/deixar de seguir
+      await apiClient.post(`users/${id}/follow`); 
     } catch (err) {
       console.error('Erro ao seguir/deixar de seguir:', err);
       setError('Falha na ação. Tente novamente.');
@@ -152,9 +154,10 @@ const Profile = () => {
           <h3 className="text-white mb-2">{profile.username}</h3>
 
           {isOwner ? (
-            <Button variant="outline-primary" className="btn-sm text-white border-custom w-100 mb-3">
+            // CORREÇÃO MOBILE: Usa Link para a rota /edit
+            <Link to="/edit" className="btn btn-outline-primary btn-sm text-white border-custom w-100 mb-3">
               Editar Perfil
-            </Button>
+            </Link>
           ) : (
             <Button
               variant={profile.is_following ? 'secondary' : 'primary'}
@@ -177,9 +180,10 @@ const Profile = () => {
             <h2 className="text-white me-3 mb-0">{profile.username}</h2>
 
             {isOwner ? (
-              <Button variant="outline-primary" className="btn-sm text-white border-custom me-2">
+              // CORREÇÃO DESKTOP: Usa Link para a rota /edit
+              <Link to="/edit" className="btn btn-outline-primary btn-sm text-white border-custom me-2">
                 Editar Perfil
-              </Button>
+              </Link>
             ) : (
               <Button
                 variant={profile.is_following ? 'secondary' : 'primary'}

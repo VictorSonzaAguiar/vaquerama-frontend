@@ -1,75 +1,84 @@
 // src/App.jsx
 
 import React from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom'; 
+// Importação CORRETA: SEM BrowserRouter
+import { Routes, Route, useLocation, Outlet } from 'react-router-dom'; 
+
 import ProtectedRoute from './components/ProtectedRoute'; 
 
+// Páginas
 import Feed from './pages/Feed';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import AppLayout from './components/AppLayout';
 import Postar from './pages/Postar';
-import Logout from './pages/Logout'; // Arquivo Logout existe!
+import Logout from './pages/Logout'; 
+import EditProfile from './pages/EditProfile'; 
 
 
-// Componente temporário para as páginas em construção
-const TempPage = ({ title }) => <h2 className="text-center text-white mt-5">{title} em construção...</h2>;
-
-
-// 1. Componente que decide se o Layout deve ser mostrado
+// =========================================================
+// Componente Wrapper para decidir se o AppLayout deve ser mostrado
+// =========================================================
 const LayoutWrapper = ({ children }) => {
     const location = useLocation();
     
     // Rotas onde o Sidebar/Layout deve ser oculto
     const noLayoutPaths = ['/login', '/register', '/logout'];
-    const shouldHideLayout = noLayoutPaths.some(path => location.pathname.startsWith(path));
+    const showLayout = !noLayoutPaths.includes(location.pathname);
 
-    // Se a rota for de login/registro/logout, apenas renderiza o conteúdo
-    if (shouldHideLayout) {
-        return children;
-    }
+    // Retorna o conteúdo, que será envolvido no BrowserRouter (em main.jsx)
+    return children;
+};
 
-    // Para todas as outras rotas, renderiza o conteúdo DENTRO do AppLayout
-    return <AppLayout>{children}</AppLayout>;
+// Componente Wrapper para aplicar o AppLayout *apenas* uma vez
+const LayoutWithAuth = () => {
+    return (
+        <ProtectedRoute>
+            <AppLayout>
+                <Outlet /> {/* O Outlet renderiza o componente da rota filha (Feed, Profile, etc.) */}
+            </AppLayout>
+        </ProtectedRoute>
+    );
 };
 
 
+// Componente temporário para rotas em construção
+const TempPage = ({ title }) => <h2 className="text-center text-white mt-5">{title} em construção...</h2>;
+
+// =========================================================
+// Função Principal App() com Rotas
+// =========================================================
 function App() {
   return (
-    // O LayoutWrapper agora envolve TUDO, decidindo o layout
     <LayoutWrapper>
         <Routes>
-          
-          {/* ========================================= */}
-          {/* 1. Rotas Públicas (Renderizadas no LayoutWrapper) */}
-          {/* ========================================= */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/logout" element={<Logout />} />
-          
-          
-          {/* ========================================= */}
-          {/* 2. Rotas Protegidas */}
-          {/* Usamos o ProtectedRoute em torno de CADA ROTA que exige login */}
-          {/* A aplicação do AppLayout é feita UMA VEZ pelo LayoutWrapper */}
-          {/* ========================================= */}
-          
-          {/* Rota Raiz (Redireciona para o Feed) */}
-          <Route path="/" element={<ProtectedRoute><Feed /></ProtectedRoute>} /> 
-          <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
-          
-          {/* Páginas Principais */}
-          <Route path="/postar" element={<ProtectedRoute><Postar /></ProtectedRoute>} /> 
-          <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          
-          {/* Páginas Temporárias */}
-          <Route path="/explore" element={<ProtectedRoute><TempPage title="Explorar" /></ProtectedRoute>} />
-          <Route path="/messages" element={<ProtectedRoute><TempPage title="Mensagens" /></ProtectedRoute>} />
-          <Route path="/notifications" element={<ProtectedRoute><TempPage title="Notificações" /></ProtectedRoute>} />
+            
+            {/* 1. Rotas Públicas */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/logout" element={<Logout />} />
+            
+            {/* 2. Rota Mestra PROTEGIDA (Todas as rotas que precisam de Sidebar) */}
+            <Route element={<LayoutWithAuth />}> 
+                
+                {/* Páginas Principais */}
+                <Route index element={<Feed />} /> {/* Rota raiz: / */}
+                <Route path="feed" element={<Feed />} />
+                <Route path="postar" element={<Postar />} />
+                
+                {/* Páginas de Interação */}
+                <Route path="profile/:id" element={<Profile />} />
+                <Route path="edit" element={<EditProfile />} /> 
 
-          {/* Rota 404 (Não encontrada) */}
-          <Route path="*" element={<div>Página Não Encontrada (404)</div>} />
+                {/* Páginas Temporárias (Em Construção) */}
+                <Route path="explore" element={<TempPage title="Explorar" />} />
+                <Route path="messages" element={<TempPage title="Mensagens" />} />
+                <Route path="notifications" element={<TempPage title="Notificações" />} />
+            </Route>
+            
+            {/* 3. Rota 404 (Não encontrada) */}
+            <Route path="*" element={<h2 className="text-center text-danger mt-5">Página Não Encontrada (404)</h2>} />
 
         </Routes>
     </LayoutWrapper>

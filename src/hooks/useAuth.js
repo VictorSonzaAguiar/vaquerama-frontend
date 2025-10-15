@@ -1,43 +1,67 @@
-// src/hooks/useAuth.js
-import { useState, useEffect } from "react";
+// src/hooks/useAuth.js - CORRIGIDO
+import { useState } from "react";
 import apiClient from "../api/api";
+// Se você não instalou, precisa rodar: npm install jwt-decode
+import { jwtDecode } from "jwt-decode";
+
+// Função auxiliar para inicializar o estado lendo o localStorage
+const getInitialState = () => {
+  const token = localStorage.getItem("userToken");
+
+  if (token) {
+    try {
+      // 1. Tenta decodificar o token para pegar o ID.
+      // Assumimos que o token JWT contém o { id: X }
+      const decoded = jwtDecode(token);
+
+      // 2. Retorna o estado autenticado e o ID do usuário.
+      return {
+        token: token,
+        isAuthenticated: true,
+        user: { id: decoded.id }, // Popula o ID do usuário imediatamente
+      };
+    } catch (e) {
+      // Token inválido (erro de decodificação)
+      localStorage.removeItem("userToken");
+    }
+  }
+
+  // Estado padrão (deslogado)
+  return {
+    token: null,
+    isAuthenticated: false,
+    user: null,
+  };
+};
 
 const useAuth = () => {
-  // Estado para armazenar o token (se o usuário está logado)
-  const [token, setToken] = useState(localStorage.getItem("userToken"));
-  const [isAuthenticated, setIsAuthenticated] = useState(!!token);
-  const [user, setUser] = useState(null);
+  // Inicializa o estado com base no localStorage, garantindo que o user.id existe.
+  const [state, setState] = useState(getInitialState());
   const [loading, setLoading] = useState(false);
-
-  // Efeito para manter o estado de autenticação sincronizado
-  useEffect(() => {
-    setIsAuthenticated(!!token);
-    // TODO: No futuro, podemos decodificar o token ou buscar dados do usuário aqui.
-  }, [token]);
 
   // Função de Login
   const login = async (email, password) => {
     setLoading(true);
     try {
-      // Chamada de API: '/users/login' é o endpoint
       const response = await apiClient.post("auth/login", { email, password });
 
-      // 2. Se for sucesso (Status 200), extrai o token
       const newToken = response.data.token;
-      const userData = response.data.user; // Se a API retornar dados do user
 
       if (newToken) {
-        // 3. Armazena o token e atualiza o estado
         localStorage.setItem("userToken", newToken);
-        setToken(newToken);
-        setUser(userData);
+        const decoded = jwtDecode(newToken);
+
+        // Atualiza o estado com o ID do usuário (vindo do token)
+        setState({
+          token: newToken,
+          isAuthenticated: true,
+          user: { id: decoded.id },
+        });
         setLoading(false);
         return { success: true };
       }
     } catch (error) {
       setLoading(false);
-
-      // Trata erros de resposta da API (ex: 401 Unauthorized)
       const errorMessage = error.response
         ? error.response.data.message || "Credenciais inválidas."
         : "Erro de conexão com o servidor. O Backend está rodando?";
@@ -49,17 +73,21 @@ const useAuth = () => {
   // Função de Logout
   const logout = () => {
     localStorage.removeItem("userToken");
-    setToken(null);
-    setUser(null);
+    setState({
+      token: null,
+      isAuthenticated: false,
+      user: null,
+    });
   };
 
+  // Retorna os dados do estado para uso nos componentes
   return {
-    isAuthenticated,
-    user,
+    isAuthenticated: state.isAuthenticated,
+    user: state.user,
     loading,
     login,
     logout,
-    token,
+    token: state.token,
   };
 };
 

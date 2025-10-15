@@ -255,3 +255,104 @@ a {
     text-transform: uppercase;
     border-top: 1px solid var(--border-color); /* Separa do corpo do post */
 }
+
+/* --- AJUSTES FINOS DO PERFIL (ETAPA 11.5) --- */
+
+.profile-container {
+    /* Garante que o container tenha um pequeno padding extra se necessário */
+    padding-left: 15px; 
+    padding-right: 15px;
+}
+
+/* 1. AFSTAR A COLUNA DE INFORMAÇÕES DA FOTO (Ajuste Horizontal) */
+/* Em telas maiores que tablet (>= 768px), move o conteúdo da Coluna 9 um pouco para a direita. */
+@media (min-width: 768px) {
+    .profile-container .col-md-9 {
+        /* Adiciona margem à esquerda para afastar da foto (que está na Coluna 3) */
+        padding-left: 0px !important; /* Aumente este valor (ex: 50px) se precisar de mais espaço */
+    }
+}
+
+
+/* 2. ESPAÇAMENTO VERTICAL ENTRE OS BLOCOS */
+/* Aplica margem TOP para afastar o conteúdo do topo da Coluna 9 */
+.profile-container .col-md-9 {
+    padding-top: 10px; /* Adiciona um pequeno padding no topo da coluna de info */
+}
+
+/* 3. ESPAÇAMENTO ENTRE O NOME DE USUÁRIO E A LOCALIZAÇÃO/CONTADORES */
+/* O bloco do Username (h2) e Botão */
+.profile-container .d-flex.align-items-center.mb-3 {
+    margin-bottom: 1.5rem !important; /* Aumenta a margem inferior para dar mais espaço */
+}
+
+/* 4. ESPAÇAMENTO ENTRE OS CONTADORES E A BIOGRAFIA */
+/* O bloco dos Contadores (Posts, Seguidores, Seguindo) */
+.profile-container .d-flex.mb-4.text-white {
+    /* Garante que haja espaço abaixo dos contadores */
+    margin-bottom: 2rem !important;
+}
+
+/* 5. ESPAÇAMENTO ENTRE O NOME REAL E O TIPO DE USUÁRIO */
+/* O h5 que contém o Nome Real */
+.profile-container h5.mb-1 {
+    margin-top: 1rem !important; /* Adiciona espaço acima do nome real */
+}
+
+/* 6. CORREÇÃO DE ALINHAMENTO DO BOTÃO "EDITAR PERFIL" */
+/* Se os elementos ainda estiverem muito juntos, você pode aplicar um flexbox mais forte */
+.profile-container .d-flex.align-items-center {
+    align-items: flex-start !important; /* Garante que os elementos se alinhem no topo */
+}
+
+/* --- AJUSTE FINO DA FOTO DE PERFIL EM DESKTOP (ETAPA 11.7) --- */
+
+@media (min-width: 768px) {
+    /* 1. Mover a foto para cima */
+    .profile-container .col-md-3 img {
+        /* Usa margem negativa no topo para subir a foto um pouco para fora do card */
+        margin-top: -30px !important; 
+        /* Adiciona sombra para dar efeito de profundidade, se necessário. */
+        /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); */
+         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+         position: relative;
+         right: 20px;
+    }
+    
+    /* 2. Mover o cartão de perfil um pouco para a esquerda */
+    /* Isso fará com que a foto arredonde para a esquerda com a margem negativa. */
+    .profile-container .bg-card {
+        /* Adiciona um pequeno padding extra à esquerda do cartão para criar o 'respiro' */
+        padding-left: 25px !important;
+        
+    }
+    
+}
+
+/* --- EFEITO DE LUZ NEON NA FOTO DE PERFIL (ETAPA 11.9) --- */
+
+/* Aplica o efeito à imagem da foto de perfil em qualquer tamanho de tela */
+.profile-container .col-md-3 img, /* Seleciona a imagem na coluna de desktop */
+.profile-container .d-block.d-md-none img { /* Seleciona a imagem na coluna mobile */
+    /* Remove a borda existente (se houver, para que o neon seja o destaque) */
+    /* border: none !important; */ 
+
+    /* Define o efeito de sombra/brilho */
+    box-shadow: 
+        0 0 10px var(--accent-color), /* Brilho interno */
+        0 0 20px var(--accent-color), /* Brilho médio */
+        0 0 30px var(--accent-color); /* Brilho externo mais difuso */
+    
+    /* Adiciona uma pequena transição para um efeito suave ao carregar/interagir */
+    transition: box-shadow 0.3s ease-in-out;
+
+    /* Opcional: Efeito hover para intensificar */
+    /*
+    &:hover {
+        box-shadow: 
+            0 0 15px var(--accent-color),
+            0 0 30px var(--accent-color),
+            0 0 45px var(--accent-color);
+    }
+    */
+}

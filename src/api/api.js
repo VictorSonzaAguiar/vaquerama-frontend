@@ -2,39 +2,66 @@
 
 import axios from "axios";
 
-// URL base do nosso Backend (Node.js/Express)
+// URL base do Backend
 const API_URL = "http://localhost:3000/api";
 
-// Cria uma instância configurada do Axios
+// Instância do Axios
 const apiClient = axios.create({
   baseURL: API_URL,
+  // Content-Type padrão: JSON
   headers: {
     "Content-Type": "application/json",
   },
-  // Não incluiremos o token por enquanto, pois esta é a rota de Login
 });
 
-// **********************************************
-// NOVO: INTERCEPTOR PARA ADICIONAR O TOKEN JWT
-// **********************************************
+// ======================================
+// INTERCEPTOR PARA ADICIONAR JWT
+// ======================================
 apiClient.interceptors.request.use(
   (config) => {
-    // 1. Obtém o token do localStorage
-    const token = localStorage.getItem('userToken');
+    const token = localStorage.getItem("userToken");
 
-    // 2. Verifica se a rota é pública (Login ou Register)
-    const isPublicRoute = config.url.includes('/auth/login') || config.url.includes('/auth/register');
+    const isPublicRoute =
+      config.url.includes("/auth/login") ||
+      config.url.includes("/auth/register");
 
-    // 3. Se houver token E não for uma rota pública, adiciona o header de Autorização
     if (token && !isPublicRoute) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
+// ======================================
+// FUNÇÃO AUXILIAR PARA CRIAR POST COM FORM-DATA
+// ======================================
+export const createPost = async (caption, file) => {
+  try {
+    const formData = new FormData();
+    formData.append("caption", caption);
+
+    if (file) {
+      // O backend espera 'media' no multer.single('media')
+      formData.append("media", file);
+
+      // Define tipo de mídia
+      const mediaType = file.type.startsWith("video/") ? "VIDEO" : "PHOTO";
+      formData.append("media_type", mediaType);
+    }
+
+    const response = await apiClient.post("/posts/create", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data", // sobrescreve JSON
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao criar post:", error.response?.data || error.message);
+    throw error;
+  }
+};
 
 export default apiClient;

@@ -10,38 +10,39 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import AppLayout from './components/AppLayout';
 import Postar from './pages/Postar';
-import Logout from './pages/Logout'; 
+import Logout from './pages/Logout'; // Arquivo Logout existe!
 
-// Páginas temporárias para as rotas não implementadas (Explore, Messages, etc.)
+
+// Componente temporário para as páginas em construção
 const TempPage = ({ title }) => <h2 className="text-center text-white mt-5">{title} em construção...</h2>;
 
 
-// 1. Componente que decide se o layout (Sidebar + Container) deve ser aplicado
+// 1. Componente que decide se o Layout deve ser mostrado
 const LayoutWrapper = ({ children }) => {
     const location = useLocation();
     
-    // Rotas onde o Layout DEVE ser oculto
+    // Rotas onde o Sidebar/Layout deve ser oculto
     const noLayoutPaths = ['/login', '/register', '/logout'];
-    const showLayout = !noLayoutPaths.some(path => location.pathname.startsWith(path));
+    const shouldHideLayout = noLayoutPaths.some(path => location.pathname.startsWith(path));
 
-    // Se a rota não for de login/registro/logout, aplicamos o AppLayout
-    if (showLayout) {
-        return <AppLayout>{children}</AppLayout>;
+    // Se a rota for de login/registro/logout, apenas renderiza o conteúdo
+    if (shouldHideLayout) {
+        return children;
     }
 
-    // Caso contrário, apenas renderizamos o conteúdo (Login, Register, Logout)
-    return children;
+    // Para todas as outras rotas, renderiza o conteúdo DENTRO do AppLayout
+    return <AppLayout>{children}</AppLayout>;
 };
 
 
 function App() {
   return (
-    // O LayoutWrapper encapsula TUDO, decidindo se o AppLayout é aplicado
+    // O LayoutWrapper agora envolve TUDO, decidindo o layout
     <LayoutWrapper>
         <Routes>
           
           {/* ========================================= */}
-          {/* 2. Rotas Públicas (Renderizadas DENTRO do LayoutWrapper, mas sem o AppLayout) */}
+          {/* 1. Rotas Públicas (Renderizadas no LayoutWrapper) */}
           {/* ========================================= */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -49,7 +50,9 @@ function App() {
           
           
           {/* ========================================= */}
-          {/* 3. Rotas Protegidas (Aplicamos o ProtectedRoute e renderizamos o conteúdo) */}
+          {/* 2. Rotas Protegidas */}
+          {/* Usamos o ProtectedRoute em torno de CADA ROTA que exige login */}
+          {/* A aplicação do AppLayout é feita UMA VEZ pelo LayoutWrapper */}
           {/* ========================================= */}
           
           {/* Rota Raiz (Redireciona para o Feed) */}

@@ -2,12 +2,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import BottomNav from './BottomNav'; // <--- IMPORTADO
 
 const AppLayout = ({ children }) => {
   return (
     <div className="d-flex">
       
-      {/* 1. Sidebar Fixo da Esquerda (Menu) */}
+      {/* 1. Sidebar Fixo da Esquerda (Menu - d-lg-block) */}
       <Sidebar />
       
       {/* 2. Wrapper Principal para o Layout de 2 Colunas (Feed + Sugestões) */}
@@ -43,11 +44,8 @@ const AppLayout = ({ children }) => {
         </div>
       </main>
        
-    
-  );
-
-
-      {/* TODO: Implementar a navegação Bottom-Nav Mobile */}
+      {/* 3. Navegação Bottom-Nav Mobile (Visível apenas em mobile) */}
+      <BottomNav />
 
     </div>
   );

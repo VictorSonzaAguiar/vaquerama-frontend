@@ -410,3 +410,97 @@ a {
 .comment-list .form-control {
     border-radius: 20px;
 }
+
+/* --- ESTILOS DA GALERIA DE PERFIL (Miniaturas) --- */
+
+.post-mini-card {
+    display: block;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid var(--border-color); /* Borda sutil */
+}
+
+.post-mini-image-wrapper {
+    position: relative;
+    padding-bottom: 100%; /* Força a proporção 1:1 (quadrado) */
+    overflow: hidden;
+}
+
+.post-mini-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.post-mini-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    color: var(--text-color);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-weight: bold;
+}
+
+/* Efeito Hover (UI/UX) */
+.post-mini-card:hover .post-mini-overlay {
+    opacity: 1;
+}
+
+.post-mini-card:hover .post-mini-image {
+    transform: scale(1.05);
+}
+
+/* src/styles/global.css - Adicione ao final */
+
+/* ========================================= */
+/* ESTILOS MOBILE - BOTTOM NAV */
+/* ========================================= */
+
+.bottom-nav {
+    /* Cor de fundo igual ao card, mas mais opaca para destacar */
+    background-color: var(--card-bg); 
+    border-top: 1px solid var(--border-color);
+    height: 56px; /* Altura padrão para navegação mobile */
+    z-index: 1030; /* Acima de outros elementos, como a modal do Bootstrap */
+    padding: 0 10px; 
+}
+
+.nav-link-mobile {
+    color: var(--text-subtle) !important;
+    padding: 5px 0;
+    transition: color 0.2s;
+    text-decoration: none;
+}
+
+.nav-link-mobile i {
+    font-size: 1.5rem !important;
+}
+
+/* Estado Ativo/Hover */
+.nav-link-mobile:hover,
+.nav-link-mobile.active-mobile-link {
+    color: var(--accent-color) !important;
+}
+
+/* Espaçamento para o conteúdo não ficar por baixo da bottom nav */
+@media (max-width: 991.98px) {
+    .main-content {
+        /* Adiciona um padding na parte de baixo igual à altura da nav */
+        padding-bottom: 56px; 
+    }
+    
+    /* Garante que o conteúdo vá até o topo em mobile, já que não tem sidebar fixo */
+    #app-content {
+        padding-top: 0 !important;
+    }
+}

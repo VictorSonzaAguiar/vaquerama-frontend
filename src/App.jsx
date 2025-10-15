@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import AppLayout from './components/AppLayout';
+import Postar from './pages/Postar';
 
 
 // Componente para decidir se o Layout deve ser mostrado
@@ -42,7 +43,7 @@ function App() {
               <Route path="/" element={<ProtectedRoute><Feed /></ProtectedRoute>} /> 
               <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
               <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/postar" element={<ProtectedRoute><div>Criar Post Componente...</div></ProtectedRoute>} />
+                <Route path="/postar" element={<ProtectedRoute><Postar /></ProtectedRoute>} /> 
               
               {/* Rota 404 (Não encontrada) */}
               <Route path="*" element={<div>Página Não Encontrada (404)</div>} />

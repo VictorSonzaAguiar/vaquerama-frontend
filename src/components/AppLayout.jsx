@@ -1,5 +1,6 @@
 // src/components/AppLayout.jsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
 
 const AppLayout = ({ children }) => {
@@ -41,6 +42,10 @@ const AppLayout = ({ children }) => {
           </div>
         </div>
       </main>
+       
+    
+  );
+
 
       {/* TODO: Implementar a navegação Bottom-Nav Mobile */}
 

@@ -1,52 +1,66 @@
-// src/components/PostCard.jsx - VERSÃO FINAL 8.3
+// src/components/PostCard.jsx - VERSÃO FINAL COM LIKE REAL (ETAPA 13.0)
 
 import React from 'react';
 import { Link } from 'react-router-dom';
 import 'bootstrap-icons/font/bootstrap-icons.css'; 
 
-// URL base do nosso Backend (Deve ser a mesma do apiClient no api.js, mas sem o /api)
+import apiClient from '../api/api'; // Importa o cliente Axios
+
+// URL base do nosso Backend (Para construir o caminho das imagens)
 const BACKEND_BASE_URL = 'http://localhost:3000'; 
 
 const PostCard = ({ post }) => {
-    // 🛑 CHECAGEM CRÍTICA: Se o post não existir ou faltarem campos cruciais, não renderize.
+    // 🛑 CHECAGEM CRÍTICA
     if (!post || !post.author_name) {
         console.error("PostCard: Dados de postagem incompletos ou nulos.", post);
         return <div className="text-danger p-3 bg-card mb-4">Erro ao carregar postagem: Dados faltantes.</div>;
     }
     
-    // 1. CONSTRUÇÃO DA URL DA MÍDIA
+    // 1. CONSTRUÇÃO DE DADOS E URLS
     const rawMediaUrl = post.media_url;
     const mediaUrl = rawMediaUrl 
         ? `${BACKEND_BASE_URL}/uploads/${rawMediaUrl}` 
         : 'https://via.placeholder.com/600x600?text=VAQUERAMA+MEDIA';
 
-    // 2. CONSTRUÇÃO DA URL DA FOTO DE PERFIL
-    // O Backend deve retornar o nome do arquivo da foto de perfil em 'u.profile_photo_url AS author_photo' (iremos conferir isso)
     const profilePhotoUrl = post.author_photo 
         ? `${BACKEND_BASE_URL}/uploads/${post.author_photo}` 
         : null; 
 
-    // 3. TIPO DE USUÁRIO (Corrigido para 'author_type')
     const userTypeDisplay = post.author_type 
         ? post.author_type.charAt(0) + post.author_type.slice(1).toLowerCase()
         : 'Desconhecido';
 
-    // 4. INICIAL DO AUTOR
     const authorInitial = post.author_name ? post.author_name.charAt(0) : '🐴';
 
-    // 5. ESTADO DE LIKE (AGORA INICIALIZADO CORRETAMENTE COM O DADO DO BACKEND)
+    // 2. ESTADO DE LIKE (Inicializado com dados do Backend)
     const [isLiked, setIsLiked] = React.useState(post.is_liked || false); 
     const [likesCount, setLikesCount] = React.useState(post.likes_count || 0);
 
-    const handleLike = () => {
-        // TODO: Aqui vamos enviar a requisição POST para o Backend para persistir o like
-        // Por enquanto, apenas a lógica local de UI:
-        if (isLiked) {
-            setLikesCount(likesCount - 1);
-        } else {
-            setLikesCount(likesCount + 1);
+    
+    // =========================================================
+    // Lógica de Curtir/Descurtir (COM CHAMADA À API)
+    // =========================================================
+    const handleLike = async () => {
+        const currentIsLiked = isLiked;
+        const currentLikes = likesCount;
+
+        // 1. Otimismo na UI: Atualiza imediatamente
+        setIsLiked(!currentIsLiked);
+        setLikesCount(currentIsLiked ? currentLikes - 1 : currentLikes + 1);
+
+        try {
+            // 2. Chamada POST protegida: /api/posts/:id/like
+            // O interceptor do Axios se encarrega de anexar o Token JWT
+            await apiClient.post(`posts/${post.id}/like`);
+            
+        } catch (err) {
+            console.error("Erro ao curtir/descurtir:", err);
+            
+            // 3. Reverte a UI em caso de falha (se o Backend falhar)
+            alert("Falha ao registrar curtida. Verifique sua conexão.");
+            setIsLiked(currentIsLiked);
+            setLikesCount(currentLikes);
         }
-        setIsLiked(!isLiked);
     };
 
     return (
@@ -58,10 +72,8 @@ const PostCard = ({ post }) => {
                     <Link to={`/profile/${post.author_id}`}>
                         {/* Renderização condicional para Foto ou Inicial */}
                         {profilePhotoUrl ? (
-                            // Se tiver foto, usa a tag <img> com a classe profile-icon
                             <img src={profilePhotoUrl} alt="Perfil" className="profile-icon" />
                         ) : (
-                            // Se não tiver foto, usa a div com a inicial
                             <div className="profile-icon">{authorInitial}</div>
                         )}
                     </Link>
@@ -82,9 +94,10 @@ const PostCard = ({ post }) => {
 
             {/* 3. AÇÕES */}
             <div className="post-actions">
+                {/* Botão LIKE - CHAMA O HANDLER CORRIGIDO */}
                 <i 
                     className={`action-icon ${isLiked ? 'bi bi-heart-fill like-active' : 'bi bi-heart'}`} 
-                    onClick={handleLike}
+                    onClick={handleLike} // <--- CHAMA A FUNÇÃO AGORA INTEGRADA
                 ></i>
                 <i className="bi bi-chat action-icon"></i>
                 <i className="bi bi-send action-icon"></i>
@@ -104,7 +117,6 @@ const PostCard = ({ post }) => {
             </div>
 
             <div className="post-metadata">
-                {/* Exibição de Comentários (dependente da correção do Backend) */}
                 {post.comments_count > 0 && 
                     <p className="m-0">Ver todos os {post.comments_count} comentários</p>
                 }

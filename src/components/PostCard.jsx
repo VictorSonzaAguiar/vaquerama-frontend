@@ -1,10 +1,12 @@
-// src/components/PostCard.jsx - VERSÃO FINAL COM LIKE REAL (ETAPA 13.0)
+// src/components/PostCard.jsx - CORRIGIDO (ETAPA 16.1)
 
-import React from 'react';
+import React, { useState } from 'react'; // CORRIGIDO: useState agora está importado
 import { Link } from 'react-router-dom';
 import 'bootstrap-icons/font/bootstrap-icons.css'; 
 
-import apiClient from '../api/api'; // Importa o cliente Axios
+import apiClient from '../api/api'; 
+
+import CommentSection from './CommentSection'; // Importado para ser usado no toggle
 
 // URL base do nosso Backend (Para construir o caminho das imagens)
 const BACKEND_BASE_URL = 'http://localhost:3000'; 
@@ -32,9 +34,10 @@ const PostCard = ({ post }) => {
 
     const authorInitial = post.author_name ? post.author_name.charAt(0) : '🐴';
 
-    // 2. ESTADO DE LIKE (Inicializado com dados do Backend)
+    // 2. ESTADOS
     const [isLiked, setIsLiked] = React.useState(post.is_liked || false); 
     const [likesCount, setLikesCount] = React.useState(post.likes_count || 0);
+    const [showComments, setShowComments] = useState(false); // Usa o useState importado
 
     
     // =========================================================
@@ -50,7 +53,6 @@ const PostCard = ({ post }) => {
 
         try {
             // 2. Chamada POST protegida: /api/posts/:id/like
-            // O interceptor do Axios se encarrega de anexar o Token JWT
             await apiClient.post(`posts/${post.id}/like`);
             
         } catch (err) {
@@ -94,12 +96,16 @@ const PostCard = ({ post }) => {
 
             {/* 3. AÇÕES */}
             <div className="post-actions">
-                {/* Botão LIKE - CHAMA O HANDLER CORRIGIDO */}
+                {/* Botão LIKE */}
                 <i 
                     className={`action-icon ${isLiked ? 'bi bi-heart-fill like-active' : 'bi bi-heart'}`} 
-                    onClick={handleLike} // <--- CHAMA A FUNÇÃO AGORA INTEGRADA
+                    onClick={handleLike}
                 ></i>
-                <i className="bi bi-chat action-icon"></i>
+                {/* Botão COMENTÁRIO */}
+                <i 
+                    className="bi bi-chat action-icon" 
+                    onClick={() => setShowComments(!showComments)} // <--- TOGGLE DE COMENTÁRIOS
+                ></i>
                 <i className="bi bi-send action-icon"></i>
                 <i className="bi bi-bookmark action-icon ms-auto"></i> 
             </div>
@@ -124,6 +130,13 @@ const PostCard = ({ post }) => {
                     POSTADO EM {new Date(post.created_at).toLocaleDateString('pt-BR')}
                 </p>
             </div>
+            
+            {/* SEÇÃO DE COMENTÁRIOS (Toggle) */}
+            {showComments && (
+                <div className="p-3">
+                    <CommentSection postId={post.id} />
+                </div>
+            )}
         </div>
     );
 };

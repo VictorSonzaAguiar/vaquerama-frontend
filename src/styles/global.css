@@ -385,3 +385,28 @@ a {
         display: none !important;
     }
 }
+
+/* --- ESTILOS DA SEÇÃO DE COMENTÁRIOS (ETAPA 16.0) --- */
+
+.comment-profile-icon {
+    width: 30px; 
+    height: 30px; 
+    border-radius: 50%;
+    background-color: var(--subtext-color);
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    font-size: 14px; 
+    color: var(--bg-dark); 
+    overflow: hidden;
+}
+
+.comment-profile-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comment-list .form-control {
+    border-radius: 20px;
+}

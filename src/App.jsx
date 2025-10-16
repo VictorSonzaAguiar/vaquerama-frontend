@@ -15,6 +15,7 @@ import Postar from './pages/Postar';
 import Logout from './pages/Logout'; 
 import EditProfile from './pages/EditProfile'; 
 import PostDetail from './pages/PostDetail';
+import Explore from './pages/Explore';
 
 // =========================================================
 // Componente Wrapper para decidir se o AppLayout deve ser mostrado
@@ -75,7 +76,7 @@ function App() {
                 <Route path="post/:id" element={<PostDetail />} />
 
                 {/* Páginas Temporárias (Em Construção) */}
-                <Route path="explore" element={<TempPage title="Explorar" />} />
+                <Route path="explore" element={<Explore />} />
                 <Route path="messages" element={<TempPage title="Mensagens" />} />
                 <Route path="notifications" element={<TempPage title="Notificações" />} />
             </Route>

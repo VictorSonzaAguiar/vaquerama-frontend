@@ -1,0 +1,137 @@
+/* src/Styles/EditPostModal.css (VERSÃO INSTAGRAM) */
+
+.edit-post-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1070;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
+/* O container principal do modal, com as duas colunas */
+.edit-post-modal-insta {
+    display: flex; /* A mágica do layout de duas colunas */
+    width: 90%;
+    max-width: 850px; /* Mais largo para acomodar a imagem */
+    height: 90vh;
+    max-height: 550px;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    animation: fadeIn 0.2s ease;
+    overflow: hidden;
+}
+
+/* Coluna da Esquerda (Imagem) */
+.edit-left {
+    flex: 1.3; /* Ocupa um pouco mais da metade do espaço */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+}
+.edit-left img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Coluna da Direita (Informações) */
+.edit-right {
+    flex: 1; /* Ocupa o restante do espaço */
+    display: flex;
+    flex-direction: column; /* Organiza o conteúdo verticalmente */
+}
+
+/* Cabeçalho da coluna direita */
+.edit-header-insta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+.edit-header-insta button {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.edit-header-insta .cancel-button {
+    color: var(--text-color);
+    font-weight: normal;
+}
+
+/* Corpo da coluna direita (área com scroll) */
+.edit-body-insta {
+    flex-grow: 1; /* Faz esta área ocupar todo o espaço vertical disponível */
+    padding: 16px;
+    overflow-y: auto; /* Adiciona scroll se o conteúdo for grande */
+}
+.edit-user-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.edit-user-info img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+.edit-user-info span {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.edit-body-insta textarea {
+    width: 100%;
+    height: 150px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    resize: none;
+    outline: none;
+    font-size: 1rem;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--subtext-color);
+    margin-top: 4px;
+}
+
+.edit-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: var(--subtext-color);
+}
+.edit-option:last-child {
+    border-bottom: none;
+}
+
+/* Responsividade para mobile */
+@media (max-width: 768px) {
+    .edit-left {
+        display: none; /* Esconde a imagem em telas pequenas */
+    }
+    .edit-post-modal-insta {
+        width: 90%;
+        max-width: 400px;
+        height: auto;
+        max-height: 80vh;
+    }
+}

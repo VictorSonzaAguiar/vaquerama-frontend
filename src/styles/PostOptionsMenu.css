@@ -1,0 +1,67 @@
+/* src/Styles/PostOptionsMenu.css */
+
+.post-options {
+    color: var(--subtext-color);
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px; /* Facilita o clique */
+}
+
+.options-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1060; /* Acima do modal do post */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.options-menu-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.65);
+}
+
+.options-menu-content {
+    position: relative;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    overflow: hidden;
+    animation: fadeIn 0.2s ease;
+    border: 1px solid var(--border-color);
+}
+
+.options-menu-item {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-weight: bold;
+    text-align: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.options-menu-item:last-child {
+    border-bottom: none;
+    font-weight: normal;
+}
+
+.options-menu-item.text-danger {
+    color: #ed4956;
+}
+
+.options-menu-item:hover {
+    background-color: var(--hover-color);
+}

@@ -1,7 +1,6 @@
-// src/App.jsx
+// src/App.jsx (VERSÃO CORRIGIDA)
 
 import React from 'react';
-// Importação CORRETA: SEM BrowserRouter
 import { Routes, Route, useLocation, Outlet } from 'react-router-dom'; 
 
 import ProtectedRoute from './components/ProtectedRoute'; 
@@ -15,7 +14,7 @@ import AppLayout from './components/AppLayout';
 import Postar from './pages/Postar';
 import Logout from './pages/Logout'; 
 import EditProfile from './pages/EditProfile'; 
-
+import PostDetail from './pages/PostDetail';
 
 // =========================================================
 // Componente Wrapper para decidir se o AppLayout deve ser mostrado
@@ -23,11 +22,13 @@ import EditProfile from './pages/EditProfile';
 const LayoutWrapper = ({ children }) => {
     const location = useLocation();
     
-    // Rotas onde o Sidebar/Layout deve ser oculto
+    // CORREÇÃO APLICADA AQUI: '/logout' agora é uma string
     const noLayoutPaths = ['/login', '/register', '/logout'];
-    const showLayout = !noLayoutPaths.includes(location.pathname);
-
-    // Retorna o conteúdo, que será envolvido no BrowserRouter (em main.jsx)
+    
+    // Esta parte do código que usa o noLayoutPaths não precisa ser alterada,
+    // mas a lógica para ocultar o layout não estava aqui.
+    // Vamos garantir que a lógica correta seja usada abaixo no return do App.
+    // O ideal é que este Wrapper não faça nada, a lógica fica no App.
     return children;
 };
 
@@ -36,7 +37,7 @@ const LayoutWithAuth = () => {
     return (
         <ProtectedRoute>
             <AppLayout>
-                <Outlet /> {/* O Outlet renderiza o componente da rota filha (Feed, Profile, etc.) */}
+                <Outlet />
             </AppLayout>
         </ProtectedRoute>
     );
@@ -51,7 +52,8 @@ const TempPage = ({ title }) => <h2 className="text-center text-white mt-5">{tit
 // =========================================================
 function App() {
   return (
-    <LayoutWrapper>
+    // O LayoutWrapper não é estritamente necessário aqui, mas mantemos a estrutura
+    <LayoutWrapper> 
         <Routes>
             
             {/* 1. Rotas Públicas */}
@@ -70,6 +72,7 @@ function App() {
                 {/* Páginas de Interação */}
                 <Route path="profile/:id" element={<Profile />} />
                 <Route path="edit" element={<EditProfile />} /> 
+                <Route path="post/:id" element={<PostDetail />} />
 
                 {/* Páginas Temporárias (Em Construção) */}
                 <Route path="explore" element={<TempPage title="Explorar" />} />

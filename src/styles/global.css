@@ -503,3 +503,88 @@ a {
 }
 
 
+/* src/styles/global.css - ADICIONAR AO FINAL */
+
+/* src/styles/global.css - ADICIONAR AO FINAL */
+
+/* --- WIDGET DE CHAT FLUTUANTE --- */
+
+.chat-widget {
+    position: fixed;
+    bottom: 0;
+    right: 20px;
+    z-index: 1040; /* Abaixo de modais, mas acima do conteúdo */
+}
+
+/* O botão "Mensagens" que fica visível */
+.chat-widget-button {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px 12px 0 0;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+.chat-widget-button i {
+    margin-right: 8px;
+}
+
+/* A janela que abre com a lista de conversas */
+.chat-widget-window {
+    width: 350px;
+    height: 450px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.chat-widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+.chat-widget-header h5 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: bold;
+}
+.chat-widget-header .close-btn {
+    background: none;
+    border: none;
+    color: var(--subtext-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Esconde o widget em telas de tablet e mobile */
+@media (max-width: 992px) {
+    .chat-widget {
+        display: none;
+    }
+}
+
+/* Estilo do Balão de Notificação */
+.notification-badge {
+  background-color: #ed4956; /* Vermelho do Instagram */
+  color: white;
+  border-radius: 50%;
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  position: absolute; /* Posição relativa ao link */
+  top: 10px;
+  right: 15px; /* Ajuste conforme necessário */
+  border: 1px solid var(--bg-dark);
+}
+/* Garante que o container do link seja a referência de posição */
+#sidebar-left .nav-link {
+    position: relative;
+}

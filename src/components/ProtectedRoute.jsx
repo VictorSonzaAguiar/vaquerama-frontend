@@ -1,29 +1,30 @@
-// src/components/ProtectedRoute.jsx
+// src/components/ProtectedRoute.jsx (VERSÃO CORRIGIDA)
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+
+// ✅ 1. CORRIGE O CAMINHO DA IMPORTAÇÃO PARA .jsx
+import useAuth from '../hooks/useAuth.jsx'; 
 
 const ProtectedRoute = ({ children }) => {
-  // Puxa o estado de autenticação do nosso hook
+  // Puxa o estado de autenticação do nosso hook, que agora vem do Contexto
   const { isAuthenticated, loading } = useAuth(); 
 
-  // Se o hook ainda está verificando, pode-se mostrar um loader (melhoria futura)
+  // Se o hook ainda está verificando o token, mostra uma tela de carregamento
   if (loading) {
     return (
-      <div className="text-center mt-5">
+      <div className="d-flex justify-content-center align-items-center min-vh-100">
         <h1 className="text-accent">🐎 Carregando...</h1>
-        <p className="text-subtle">Verificando autenticação...</p>
       </div>
     );
   }
 
-  // Lógica principal:
+  // Se terminou de carregar e NÃO está autenticado, redireciona para o Login
   if (!isAuthenticated) {
-    // Se não estiver autenticado, redireciona para a tela de Login
     return <Navigate to="/login" replace />;
   }
 
-  // Se estiver autenticado, renderiza o componente filho (o Feed, por exemplo)
+  // Se terminou de carregar e ESTÁ autenticado, renderiza a página solicitada
   return children;
 };
 

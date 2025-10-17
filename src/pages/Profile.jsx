@@ -1,13 +1,12 @@
-// =========================================================
+// ===================================================================
 // 📄 src/pages/Profile.jsx - FINAL COMPLETO E CORRIGIDO
-// Inclui: seguir/deixar de seguir + posts do usuário
-// =========================================================
+// Inclui: seguir/deixar de seguir + posts + botão de mensagem
+// ===================================================================
 
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom'; // <--- IMPORTAÇÃO ÚNICA E CORRETA
+import { useParams, Link } from 'react-router-dom';
 import { Container, Row, Col, Button, Image } from 'react-bootstrap';
-import PostCard from '../components/PostCard'; // Componente de post padrão
-import PostCardMini from '../components/PostCardMini'; // Miniatura (para galeria)
+import PostCardMini from '../components/PostCardMini';
 import apiClient from '../api/api';
 import useAuth from '../hooks/useAuth';
 
@@ -15,18 +14,15 @@ import useAuth from '../hooks/useAuth';
 const BACKEND_BASE_URL = 'http://localhost:3000';
 
 const Profile = () => {
-  const { id } = useParams(); // ID do perfil na URL (ex: /profile/1)
+  const { id } = useParams();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Estados novos para posts
   const [userPosts, setUserPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(true);
 
-  // Usuário logado e token (para seguir)
-  const { user: loggedUser, token } = useAuth();
-  // Verifica se o ID do usuário logado é igual ao ID do perfil na URL
+  const { user: loggedUser } = useAuth();
   const isOwner = loggedUser && loggedUser.id === parseInt(id);
 
   // =========================================================
@@ -41,7 +37,6 @@ const Profile = () => {
         const response = await apiClient.get(`users/${id}`);
         const userData = response.data.user;
 
-        // Constrói URL completa da foto de perfil
         if (userData.profile_photo_url) {
           userData.profile_photo_full_url = `${BACKEND_BASE_URL}/uploads/${userData.profile_photo_url}`;
         }
@@ -82,12 +77,11 @@ const Profile = () => {
   // 3️⃣ Lógica de Seguir / Deixar de Seguir
   // =========================================================
   const handleToggleFollow = async () => {
-    if (!token || profile.loading_follow) return;
+    if (profile.loading_follow) return;
 
     const currentStatus = profile.is_following;
     const newStatus = !currentStatus;
 
-    // Atualização otimista da UI
     setProfile((p) => ({
       ...p,
       is_following: newStatus,
@@ -96,13 +90,10 @@ const Profile = () => {
     }));
 
     try {
-      // Endpoint para seguir/deixar de seguir
-      await apiClient.post(`users/${id}/follow`); 
+      await apiClient.post(`users/${id}/follow`);
     } catch (err) {
       console.error('Erro ao seguir/deixar de seguir:', err);
       setError('Falha na ação. Tente novamente.');
-
-      // Reverte em caso de erro
       setProfile((p) => ({
         ...p,
         is_following: currentStatus,
@@ -135,7 +126,6 @@ const Profile = () => {
   // =========================================================
   return (
     <Container className="profile-container mt-4">
-
       {/* 1. SEÇÃO DE BIOGRAFIA (TOPO) */}
       <Row className="mb-5 p-4 bg-card border-custom rounded g-4">
         {/* MOBILE */}
@@ -154,23 +144,29 @@ const Profile = () => {
           <h3 className="text-white mb-2">{profile.username}</h3>
 
           {isOwner ? (
-            // CORREÇÃO MOBILE: Usa Link para a rota /edit
             <Link to="/edit" className="btn btn-outline-primary btn-sm text-white border-custom w-100 mb-3">
               Editar Perfil
             </Link>
           ) : (
-            <Button
-              variant={profile.is_following ? 'secondary' : 'primary'}
-              className={
-                profile.is_following
-                  ? 'btn-sm bg-secondary border-0 w-100 mb-3'
-                  : 'btn-sm bg-accent border-0 w-100 mb-3'
-              }
-              onClick={handleToggleFollow}
-              disabled={profile.loading_follow}
-            >
-              {profile.loading_follow ? 'Processando...' : profile.is_following ? 'Seguindo' : 'Seguir'}
-            </Button>
+            // ✅ NOVO: Container para botões no mobile
+            <div className="d-flex w-100 mb-3 gap-2">
+              <Button
+                variant={profile.is_following ? 'secondary' : 'primary'}
+                className={
+                  profile.is_following
+                    ? 'btn-sm bg-secondary border-0 w-100'
+                    : 'btn-sm bg-accent border-0 w-100'
+                }
+                onClick={handleToggleFollow}
+                disabled={profile.loading_follow}
+              >
+                {profile.loading_follow ? '...' : profile.is_following ? 'Seguindo' : 'Seguir'}
+              </Button>
+              {/* ✅ NOVO: Botão de mensagem no mobile */}
+              <Link to={`/messages/${id}`} className="btn btn-outline-light btn-sm w-100">
+                Mensagem
+              </Link>
+            </div>
           )}
         </Col>
 
@@ -178,21 +174,26 @@ const Profile = () => {
         <Col xs={12} md={9} className="d-flex flex-column justify-content-center">
           <div className="d-none d-md-flex align-items-center mb-3">
             <h2 className="text-white me-3 mb-0">{profile.username}</h2>
-
             {isOwner ? (
-              // CORREÇÃO DESKTOP: Usa Link para a rota /edit
               <Link to="/edit" className="btn btn-outline-primary btn-sm text-white border-custom me-2">
                 Editar Perfil
               </Link>
             ) : (
-              <Button
-                variant={profile.is_following ? 'secondary' : 'primary'}
-                className={profile.is_following ? 'btn-sm bg-secondary border-0' : 'btn-sm bg-accent border-0'}
-                onClick={handleToggleFollow}
-                disabled={profile.loading_follow}
-              >
-                {profile.loading_follow ? 'Processando...' : profile.is_following ? 'Seguindo' : 'Seguir'}
-              </Button>
+              // ✅ NOVO: Container para botões no desktop
+              <div className="d-flex">
+                <Button
+                  variant={profile.is_following ? 'secondary' : 'primary'}
+                  className={profile.is_following ? 'btn-sm bg-secondary border-0' : 'btn-sm bg-accent border-0'}
+                  onClick={handleToggleFollow}
+                  disabled={profile.loading_follow}
+                >
+                  {profile.loading_follow ? 'Processando...' : profile.is_following ? 'Seguindo' : 'Seguir'}
+                </Button>
+                {/* ✅ NOVO: Botão de mensagem no desktop */}
+                <Link to={`/messages/${id}`} className="btn btn-outline-light btn-sm ms-2">
+                  Mensagem
+                </Link>
+              </div>
             )}
           </div>
 

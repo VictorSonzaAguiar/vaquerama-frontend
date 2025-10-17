@@ -1,15 +1,13 @@
-// src/components/ChatWindow.jsx (VERSÃO FINAL COM FOTO E TEMPO REAL)
-
+// src/components/ChatWindow.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Spinner, InputGroup, FormControl } from 'react-bootstrap';
 import apiClient from '../api/api';
 import useAuth from '../hooks/useAuth';
-import io from 'socket.io-client'; // Importa o cliente Socket.IO
+import io from 'socket.io-client'; // 👈 importar o socket
 import '../styles/ChatWindow.css';
 
-// URL do seu servidor backend
-const SOCKET_SERVER_URL = "http://localhost:3000";
 const BACKEND_BASE_URL = 'http://localhost:3000';
+const SOCKET_SERVER_URL = 'http://localhost:3000'; // 👈 igual no Messages.jsx
 
 const ChatWindow = ({ conversation, onBack }) => {
   const { user } = useAuth();
@@ -18,35 +16,11 @@ const ChatWindow = ({ conversation, onBack }) => {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
 
-  // Ref para manter a instância do socket viva entre renderizações
-  const socketRef = useRef(null);
+  const socketRef = useRef(null); // 👈 adicionar
 
-  // =========================================================
-  // 1. CONECTA E GERENCIA O SOCKET.IO
-  // =========================================================
-  useEffect(() => {
-    // Conecta ao servidor quando o componente é montado
-    socketRef.current = io(SOCKET_SERVER_URL);
-
-    // Entra na "sala" da conversa atual para receber mensagens
-    socketRef.current.emit('join_conversation', conversation.conversation_id);
-
-    // Listener: fica "ouvindo" por novas mensagens que chegam do servidor
-    socketRef.current.on('receive_message', (incomingMessage) => {
-      // Adiciona a mensagem recebida ao estado, atualizando a tela
-      setMessages(prev => [...prev, incomingMessage]);
-    });
-
-    // Função de limpeza: desconecta e sai da sala quando o componente é fechado
-    return () => {
-      socketRef.current.emit('leave_conversation', conversation.conversation_id);
-      socketRef.current.disconnect();
-    };
-  }, [conversation.conversation_id]);
-
-  // =========================================================
-  // 2. BUSCA O HISTÓRICO DE MENSAGENS DA API
-  // =========================================================
+  // =========================
+  // 1. Buscar histórico
+  // =========================
   const fetchMessages = useCallback(async () => {
     setLoading(true);
     try {
@@ -59,35 +33,60 @@ const ChatWindow = ({ conversation, onBack }) => {
     }
   }, [conversation.conversation_id]);
 
+  // =========================
+  // 2. Conexão Socket
+  // =========================
+  useEffect(() => {
+    socketRef.current = io(SOCKET_SERVER_URL);
+
+    // Entrar na sala da conversa
+    socketRef.current.emit('join_conversation', conversation.conversation_id);
+
+    // Listener: receber mensagens em tempo real
+    socketRef.current.on('receive_message', (incomingMessage) => {
+      if (incomingMessage.conversation_id === conversation.conversation_id) {
+        setMessages(prev => [...prev, incomingMessage]);
+      }
+    });
+
+    // Cleanup: sair da sala e desconectar
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.emit('leave_conversation', conversation.conversation_id);
+        socketRef.current.disconnect();
+      }
+    };
+  }, [conversation.conversation_id]);
+
+  // =========================
+  // 3. Buscar mensagens no load
+  // =========================
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
-  
-  // =========================================================
-  // 3. ENVIA UMA NOVA MENSAGEM
-  // =========================================================
+
+  // =========================
+  // 4. Enviar mensagem
+  // =========================
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
     setIsSending(true);
-
     try {
-      // Passo A: Envia para a API para salvar no banco de dados
       const response = await apiClient.post(`/messages/${conversation.conversation_id}`, { content: newMessage });
 
-      // Cria o objeto da mensagem com os dados corretos (ID do banco)
       const sentMessage = {
         id: response.data.messageId,
         sender_id: user.id,
         content: newMessage,
         created_at: new Date().toISOString(),
+        conversation_id: conversation.conversation_id,
       };
 
-      // Passo B: Atualiza a tela localmente
       setMessages(prev => [...prev, sentMessage]);
 
-      // Passo C: Emite a mensagem via Socket.IO para o outro usuário em tempo real
+      // 👇 Emite via socket para o outro usuário
       socketRef.current.emit('send_message', {
         conversationId: conversation.conversation_id,
         message: sentMessage,
@@ -101,24 +100,24 @@ const ChatWindow = ({ conversation, onBack }) => {
     }
   };
 
+  // =========================
+  // 5. Renderização
+  // =========================
   return (
     <div className="chat-window">
-      {/* Cabeçalho */}
       <div className="chat-window-header">
         <button onClick={onBack} className="back-btn">&larr;</button>
         <h6>{conversation.participant_name}</h6>
-        <div />
       </div>
 
-      {/* Corpo com as mensagens */}
       <div className="chat-window-body">
         {loading ? <Spinner size="sm" /> : messages.map(msg => (
-          // ✅ MELHORIA VISUAL: Container para a mensagem e a foto
           <div key={msg.id} className={`message-container ${msg.sender_id === user.id ? 'sent' : 'received'}`}>
-            {/* Mostra a foto apenas para mensagens recebidas */}
             {msg.sender_id !== user.id && (
               <img
-                src={conversation.participant_photo ? `${BACKEND_BASE_URL}/uploads/${conversation.participant_photo}` : 'https://via.placeholder.com/28'}
+                src={conversation.participant_photo
+                  ? `${BACKEND_BASE_URL}/uploads/${conversation.participant_photo}`
+                  : 'https://via.placeholder.com/28'}
                 alt="Perfil"
                 className="chat-profile-pic"
               />
@@ -130,7 +129,6 @@ const ChatWindow = ({ conversation, onBack }) => {
         ))}
       </div>
 
-      {/* Input de envio */}
       <form className="chat-window-input" onSubmit={handleSendMessage}>
         <InputGroup>
           <FormControl

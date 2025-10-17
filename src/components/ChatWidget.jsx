@@ -1,61 +1,65 @@
-// src/components/ChatWidget.jsx (VERSÃO CORRIGIDA)
+// src/components/ChatWidget.jsx (VERSÃO FINAL E CORRIGIDA)
 
 import React, { useState, useEffect } from 'react';
 import apiClient from '../api/api';
 import ConversationList from './ConversationList';
-// ✅ 1. IMPORTAMOS O NOVO COMPONENTE DE JANELA DE CHAT
 import ChatWindow from './ChatWindow';
+import { useNotifications } from '../context/NotificationContext'; // Importação para o badge global
 
 const ChatWidget = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [conversations, setConversations] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // Pega a contagem global de não lidas e a função de limpeza
+    const { unreadCount, clearNotifications } = useNotifications(); 
     
-    // ✅ 2. NOVO ESTADO PARA CONTROLAR A CONVERSA ATIVA DENTRO DO WIDGET
-    const [activeConversation, setActiveConversation] = useState(null);
+    const [isOpen, setIsOpen] = useState(false); // Estado para abrir/fechar o widget
+    const [conversations, setConversations] = useState([]); // Lista de conversas
+    const [loading, setLoading] = useState(true); // Estado de carregamento
+    const [activeConversation, setActiveConversation] = useState(null); // Conversa selecionada
 
-    // Busca as conversas quando o widget é aberto
+    // =========================================================
+    // 1. BUSCA CONVERSAS AO ABRIR O WIDGET
+    // =========================================================
     useEffect(() => {
-        if (isOpen && conversations.length === 0) {
-            setLoading(true);
+        // Busca apenas se o widget for aberto E a lista estiver vazia
+        if (isOpen && conversations.length === 0) { 
+            setLoading(true); // Inicia o carregamento
             apiClient.get('/conversations')
                 .then(response => {
-                    setConversations(response.data.conversations || []);
+                    setConversations(response.data.conversations || []); // Define as conversas
                 })
                 .catch(err => {
-                    console.error("Erro ao buscar conversas para o widget:", err);
+                    console.error("Erro ao buscar conversas para o widget:", err); // Loga o erro
                 })
                 .finally(() => {
-                    setLoading(false);
+                    setLoading(false); // Finaliza o carregamento
                 });
         }
-    }, [isOpen, conversations.length]);
+    }, [isOpen, conversations.length]); // Dependências
 
-    // ✅ 3. A FUNÇÃO AGORA DEFINE A CONVERSA ATIVA EM VEZ DE NAVEGAR
+    // =========================================================
+    // 2. HANDLERS
+    // =========================================================
     const handleSelectConversation = (convo) => {
-        setActiveConversation(convo);
+        setActiveConversation(convo); // Define a conversa ativa
+        // ✅ AÇÃO: Limpa a contagem GERAL ao abrir uma conversa no widget
+        clearNotifications(); // Limpa as notificações globais
     };
 
-    // Função para fechar o widget ou voltar para a lista de conversas
     const handleClose = () => {
-        setIsOpen(false);
-        setActiveConversation(null); // Reseta a conversa ativa ao fechar
+        setIsOpen(false); // Fecha o widget
+        setActiveConversation(null); // Limpa a conversa ativa
     };
-    
+
     return (
         <div className="chat-widget">
             {isOpen ? (
                 // --- Janela Aberta ---
                 <div className="chat-widget-window">
-                    {/* ✅ 4. RENDERIZAÇÃO CONDICIONAL */}
                     {activeConversation ? (
-                        // Se há uma conversa ativa, mostra a janela de chat
                         <ChatWindow 
                             conversation={activeConversation} 
-                            onBack={() => setActiveConversation(null)} // Botão de voltar
+                            onBack={() => setActiveConversation(null)} 
                         />
                     ) : (
-                        // Se não, mostra o cabeçalho e a lista de conversas
                         <>
                             <div className="chat-widget-header">
                                 <h5>Mensagens</h5>
@@ -67,6 +71,7 @@ const ChatWidget = () => {
                                 <ConversationList 
                                     conversations={conversations}
                                     onSelectConversation={handleSelectConversation}
+                                    // Passamos null para selectedConversation, pois o widget não a exibe
                                 />
                             )}
                         </>
@@ -77,6 +82,8 @@ const ChatWidget = () => {
                 <button className="chat-widget-button" onClick={() => setIsOpen(true)}>
                     <i className="bi bi-send"></i>
                     <span>Mensagens</span>
+                    {/* ✅ NOVO: RENDERIZA O BADGE DE NOTIFICAÇÃO GLOBAL */}
+                    {unreadCount > 0 && <span className="notification-badge ms-2">{unreadCount}</span>}
                 </button>
             )}
         </div>

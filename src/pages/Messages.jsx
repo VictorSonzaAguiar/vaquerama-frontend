@@ -1,4 +1,4 @@
-// src/pages/Messages.jsx (VERSÃO FINAL E COMPLETA)
+// src/pages/Messages.jsx
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
@@ -6,7 +6,6 @@ import { InputGroup, FormControl, Spinner } from 'react-bootstrap';
 import apiClient from '../api/api';
 import io from 'socket.io-client';
 
-// Componentes e Contextos
 import ConversationList from '../components/ConversationList';
 import useAuth from '../hooks/useAuth';
 import { useNotifications } from '../context/NotificationContext';
@@ -30,37 +29,86 @@ const Messages = () => {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
 
-  // Efeito para limpar as notificações ao entrar na página
+  const selectedConversationRef = useRef(selectedConversation);
   useEffect(() => {
-    clearNotifications();
-  }, [clearNotifications]);
+    selectedConversationRef.current = selectedConversation;
+  }, [selectedConversation]);
 
-  // Efeito para conectar e gerenciar o Socket.IO
+  // =========================================================
+  // 1. CONEXÃO SOCKET + ATUALIZAÇÃO EM TEMPO REAL
+  // =========================================================
   useEffect(() => {
-    socketRef.current = io(SOCKET_SERVER_URL);
-    socketRef.current.on('receive_message', (incomingMessage) => {
-      // Apenas adiciona a mensagem se ela pertencer à conversa aberta
-      if (incomingMessage.conversation_id === selectedConversation?.conversation_id) {
-          setMessages(prev => [...prev, incomingMessage]);
-      }
+    if (!user?.id) return;
+
+    clearNotifications();
+
+    // Conecta no Socket.IO
+    socketRef.current = io(SOCKET_SERVER_URL, {
+      transports: ['websocket'],
     });
 
-    return () => socketRef.current.disconnect();
-  }, [selectedConversation]);
+    // Registra o usuário logado
+    socketRef.current.on('connect', () => {
+      socketRef.current.emit("register_user", user.id);
+    });
 
-  // Efeito para entrar/sair das salas de chat
-  useEffect(() => {
-    if (selectedConversation) {
-      socketRef.current.emit('join_conversation', selectedConversation.conversation_id);
-    }
-    return () => {
-      if (selectedConversation) {
-        socketRef.current.emit('leave_conversation', selectedConversation.conversation_id);
+    // Evento: Mensagem Recebida
+    const handleReceiveMessage = (incomingMessage) => {
+      // Atualiza mensagens se estiver na conversa aberta
+      if (incomingMessage.conversation_id === selectedConversationRef.current?.conversation_id) {
+        setMessages(prev => [...prev, incomingMessage]);
+      }
+
+      // Atualiza lista lateral
+      setConversations(prevConversations => {
+        let updatedConvo = null;
+        const newConvos = prevConversations.filter(c => {
+          if (c.conversation_id === incomingMessage.conversation_id) {
+            updatedConvo = {
+              ...c,
+              last_message: incomingMessage.content,
+              last_message_timestamp: incomingMessage.created_at,
+              unread_count:
+                c.conversation_id === selectedConversationRef.current?.conversation_id
+                  ? 0
+                  : (c.unread_count || 0) + 1,
+            };
+            return false;
+          }
+          return true;
+        });
+        if (updatedConvo) {
+          return [updatedConvo, ...newConvos];
+        }
+        return prevConversations;
+      });
+    };
+
+    // Evento: Atualização da Lista de Conversas
+    const handleUpdateConversationList = async () => {
+      try {
+        const response = await apiClient.get('/conversations');
+        setConversations(response.data.conversations || []);
+      } catch (err) {
+        console.error("Erro ao atualizar lista:", err);
       }
     };
-  }, [selectedConversation]);
 
-  // Busca a lista de conversas
+    socketRef.current.on("receive_message", handleReceiveMessage);
+    socketRef.current.on("update_conversation_list", handleUpdateConversationList);
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off("receive_message", handleReceiveMessage);
+        socketRef.current.off("update_conversation_list", handleUpdateConversationList);
+        socketRef.current.disconnect();
+      }
+    };
+  }, [clearNotifications, user?.id]);
+
+  // =========================================================
+  // 2. BUSCA A LISTA DE CONVERSAS
+  // =========================================================
   useEffect(() => {
     const fetchConversations = async () => {
       setLoadingConversations(true);
@@ -82,12 +130,20 @@ const Messages = () => {
     fetchConversations();
   }, [userIdFromUrl]);
 
-  // Busca as mensagens de uma conversa selecionada
+  // =========================================================
+  // 3. BUSCA AS MENSAGENS E GERENCIA JOIN/LEAVE
+  // =========================================================
   const fetchMessages = useCallback(async (conversationId) => {
     setLoadingMessages(true);
     try {
       const response = await apiClient.get(`/messages/${conversationId}`);
       setMessages(response.data.messages || []);
+
+      setConversations(prev =>
+        prev.map(c =>
+          c.conversation_id === conversationId ? { ...c, unread_count: 0 } : c
+        )
+      );
     } catch (err) {
       console.error("Erro ao buscar mensagens:", err);
     } finally {
@@ -98,10 +154,20 @@ const Messages = () => {
   useEffect(() => {
     if (selectedConversation) {
       fetchMessages(selectedConversation.conversation_id);
+      if (socketRef.current) {
+        socketRef.current.emit('join_conversation', selectedConversation.conversation_id);
+      }
     }
+    return () => {
+      if (socketRef.current && selectedConversation) {
+        socketRef.current.emit('leave_conversation', selectedConversation.conversation_id);
+      }
+    };
   }, [selectedConversation, fetchMessages]);
 
-  // Envia uma nova mensagem
+  // =========================================================
+  // 4. ENVIO DE MENSAGEM
+  // =========================================================
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedConversation) return;
@@ -118,10 +184,13 @@ const Messages = () => {
       };
 
       setMessages(prev => [...prev, sentMessage]);
+
+      // Emite mensagem via Socket.IO
       socketRef.current.emit('send_message', {
         conversationId: selectedConversation.conversation_id,
         message: sentMessage,
       });
+
       setNewMessage('');
     } catch (err) {
       alert("Falha ao enviar mensagem.");
@@ -129,8 +198,10 @@ const Messages = () => {
       setIsSending(false);
     }
   };
-  
-  // Renderização
+
+  // =========================================================
+  // 5. RENDERIZAÇÃO
+  // =========================================================
   if (loadingConversations) return <div className="messages-loading"><Spinner animation="border" variant="light" /></div>;
   if (error) return <h2 className="text-center text-danger mt-5">{error}</h2>;
 

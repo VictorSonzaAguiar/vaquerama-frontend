@@ -1,4 +1,4 @@
-/* src/styles/Messages.css (VERSÃO CORRIGIDA) */
+/* src/styles/Messages.css (VERSÃO FINAL COM GRID E NOTIFICAÇÃO) */
 
 /* === ESTRUTURA DA PÁGINA === */
 .messages-page {
@@ -70,7 +70,6 @@
     border-bottom: 1px solid #262626;
     height: 75px; /* Mesma altura do header da sidebar */
 }
-/* ... (o resto do CSS do chat-area está correto) ... */
 .chat-actions i { margin-left: 15px; font-size: 1.3rem; cursor: pointer; color: #fff; }
 .chat-body { flex: 1; overflow-y: auto; padding: 20px; }
 .chat-input { border-top: 1px solid #262626; padding: 10px 20px; }
@@ -98,45 +97,54 @@
 
 
 /* ========================================= */
-/* ESTILOS PARA A LISTA DE CONVERSAS (NOVO)  */
+/* ESTILOS PARA A LISTA DE CONVERSAS (GRID)  */
 /* ========================================= */
 
 .conversation-list-items {
   padding-top: 10px;
 }
 
-/* Container principal de cada item da conversa */
+/* 1. Container principal de cada item da conversa (usa GRID) */
 .conversation-item {
-  display: flex;
-  align-items: center;
-  padding: 8px 20px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+    display: grid;
+    /* Colunas: 1. Foto (56px), 2. Detalhes (preenche o restante), 3. Status/Dot (tamanho automático) */
+    grid-template-columns: 56px 1fr auto; 
+    gap: 15px; /* Espaço entre as colunas */
+    align-items: center;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-/* Efeito hover para feedback visual */
 .conversation-item:hover {
   background-color: #1a1a1a;
 }
-
-/* Estilo para a conversa que está ativa/selecionada */
 .conversation-item.active {
   background-color: #262626;
 }
 
-/* Ícone de perfil (pequeno e circular) */
-.conversation-item .profile-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 15px;
+/* 2. Wrapper da foto (para garantir o tamanho fixo da primeira coluna) */
+.profile-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    grid-column: 1; /* Garante que fique na primeira coluna do grid */
 }
 
-/* Container para nome e última mensagem */
-.conversation-item .conversation-details {
-  flex-grow: 1; /* Faz este container ocupar o espaço, empurrando o timestamp para a direita */
-  overflow: hidden; /* Evita que textos longos quebrem o layout */
+/* A imagem em si */
+.conversation-item .profile-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 3. Container para nome e última mensagem (segunda coluna) */
+.conversation-details {
+  grid-column: 2;
+  flex-grow: 1;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .conversation-details .participant-name {
@@ -149,22 +157,55 @@
   font-size: 0.85rem;
   color: #a8a8a8;
   margin: 0;
-  white-space: nowrap; /* Impede que a mensagem quebre linha */
-  overflow: hidden; /* Esconde o que não couber */
-  text-overflow: ellipsis; /* Adiciona "..." ao final de mensagens longas */
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+
+/* 4. O container de timestamp/bolinha (terceira coluna) */
+.timestamp-col { 
+    grid-column: 3;
+    display: flex; 
+    flex-direction: column;
+    align-items: flex-end; 
+    justify-content: center; 
+    height: 100%;
 }
 
 /* Timestamp (data/hora) */
 .conversation-item .timestamp {
   font-size: 0.75rem;
   color: #a8a8a8;
-  margin-left: 10px; /* Pequeno espaço à esquerda */
+  margin-left: 10px; 
   white-space: nowrap;
+}
+
+/* ========================================= */
+/* ESTILO PARA NOTIFICAÇÃO (BOLINHA DOURADA) */
+/* ========================================= */
+
+/* A bolinha amarela/dourada que indica novas mensagens */
+.unread-dot {
+    width: 10px;
+    height: 10px;
+    background-color: var(--accent-color); /* Amarelo/Dourado do seu tema */
+    border-radius: 50%;
+    margin-left: auto; /* Empurra para o canto direito */
+    margin-top: 4px; /* Pequeno espaçamento abaixo do timestamp */
+}
+
+/* Remove negrito em conversas ativas (apenas o balão de notificação é o destaque) */
+.conversation-item.active .participant-name {
+    font-weight: normal; 
+}
+.conversation-item.active .last-message {
+    font-weight: normal; 
+    color: var(--subtext-color) !important;
 }
 
 
 /* ========================================= */
-/* ESTILOS PARA OS BALÕES DE MENSAGEM (NOVO) */
+/* ESTILOS PARA CHAT WINDOW (MENSAGENS) */
 /* ========================================= */
 
 .chat-body {
@@ -179,40 +220,37 @@
   border-radius: 20px;
   font-size: 0.95rem;
   line-height: 1.4;
-  word-wrap: break-word; /* Quebra palavras longas */
+  word-wrap: break-word; 
 }
 
 /* Mensagens recebidas (do outro usuário) */
 .message-bubble.received {
-  background-color: #262626; /* Cinza escuro */
+  background-color: #262626; 
   color: #f5f5f5;
-  align-self: flex-start; /* Alinha à esquerda */
+  align-self: flex-start; 
 }
 
 /* Mensagens enviadas (por você) */
 .message-bubble.sent {
-  background-color: #3797f0; /* Azul do Instagram */
+  background-color: #3797f0; 
   color: #fff;
-  align-self: flex-end; /* Alinha à direita */
+  align-self: flex-end; 
 }
 
-/* ========================================= */
-/* ESTILOS PARA FOTO DE PERFIL NO CHAT (NOVO) */
-/* ========================================= */
-
+/* Container que envolve a foto e o balão de mensagem */
 .message-container {
   display: flex;
-  align-items: flex-end; /* Alinha a foto com a base do balão */
+  align-items: flex-end; 
   gap: 10px;
   max-width: 80%;
 }
 
 .message-container.sent {
-  align-self: flex-end; /* Move todo o container para a direita */
+  align-self: flex-end; 
 }
 
 .message-container.received {
-  align-self: flex-start; /* Move todo o container para a esquerda */
+  align-self: flex-start; 
 }
 
 .chat-profile-pic {
@@ -222,7 +260,6 @@
   object-fit: cover;
 }
 
-/* Ajusta o balão de mensagem para não precisar de alinhamento próprio */
 .message-bubble {
   align-self: unset;
 }

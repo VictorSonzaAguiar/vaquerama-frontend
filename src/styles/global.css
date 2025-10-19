@@ -1,590 +1,509 @@
 /* src/styles/global.css */
 
-/* VARIÁVEIS DE COR (DARK MODE - Estilo Instagram/Vaquejada) */
+/* ============================= */
+/* VARIÁVEIS (DARK THEME)        */
+/* ============================= */
 :root {
-    --bg-dark: #000000;
-    --card-bg: #1E1E1E;
-    --text-color: #FAFAFA;
-    --subtext-color: #A8A8A8;
-    --accent-color: #D4AF37; /* Dourado da Vaquejada */
-    --border-color: #262626;
-    --hover-color: #383838;
+  --bg-dark: #000000;
+  --card-bg: #1e1e1e;
+  --text-color: #fafafa;
+  --subtext-color: #a8a8a8;
+  --accent-color: #d4af37; /* Dourado da Vaquejada */
+  --border-color: #262626;
+  --hover-color: #383838;
+
+  /* Largura dinâmica da sidebar (controlada pelo AppLayout) */
+  --sidebar-w: 260px;
 }
 
-/* Estilo Básico do Corpo */
+/* ============================= */
+/* BASE                          */
+/* ============================= */
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
 body {
-    background-color: var(--bg-dark) !important;
-    color: var(--text-color) !important;
-    min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden; /* Evita scroll lateral */
+  background-color: var(--bg-dark) !important;
+  color: var(--text-color) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  margin: 0;
+  overflow-x: hidden;
 }
+a { text-decoration: none; color: var(--text-color); }
 
-a {
-    text-decoration: none;
-    color: var(--text-color);
-}
-
-/* Estilos de utilidade para o tema */
 .bg-card { background-color: var(--card-bg) !important; }
 .text-accent { color: var(--accent-color) !important; }
 .border-custom { border-color: var(--border-color) !important; }
 .text-subtle { color: var(--subtext-color) !important; }
 
-/* ... (Código do Dark Mode que você já tem) */
-
-/* Estilo da Sidebar Lateral Fixa (Inspirado no Instagram) */
-#sidebar-left {
-    width: 280px; /* Largura padrão */
-    height: 100vh;
-    position: fixed; /* Fixo na tela */
-    top: 0;
-    left: 0;
-    background-color: var(--bg-dark);
-    border-right: 1px solid var(--border-color);
-    padding: 20px 0;
-    z-index: 1000;
+/* ============================= */
+/* APP GRID (SUBSTITUI O FIXO)   */
+/* ============================= */
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w, 260px) 1fr;
+  grid-template-rows: 100vh;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
 }
 
-#sidebar-left .nav-link {
-    color: var(--text-color);
-    border-radius: 25px;
-    padding: 12px 15px;
-    margin-bottom: 5px;
-    transition: background-color 0.2s, font-weight 0.2s;
+/* Páginas comuns: rolam no main */
+.app-content {
+  min-width: 0;
+  height: auto;
+  min-height: 100vh;
+  overflow: auto;
 }
 
-#sidebar-left .nav-link:hover {
-    background-color: var(--hover-color);
+/* Em /messages o main “trava”; o scroll é interno do chat */
+.app-content.is-messages {
+  height: 100vh;
+  overflow: hidden;
 }
 
-#sidebar-left .nav-link.active {
-    /* Destaca o link ativo */
-    font-weight: bold;
-    color: var(--text-color); /* Mantém branco, mas o bold já destaca */
+/* ============================= */
+/* SIDEBAR MODERNA (NOVA)        */
+/* ============================= */
+.sidebar {
+  width: var(--sidebar-w, 260px);
+  background: linear-gradient(180deg, #0c0c0c 0%, #1a1a1a 100%);
+  color: var(--text-color);
+  border-right: 1px solid var(--border-color);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
+  transition: width 0.3s ease-in-out, background 0.3s ease-in-out;
 }
 
-/* Espaço para o Conteúdo Principal (Main) */
-.main-content {
-    /* Cria o espaço para que o main fique ao lado da sidebar fixa */
-    margin-left: 280px; 
-    padding-top: 20px;
-    padding-bottom: 50px;
+/* Container interno */
+.sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px 12px;
+  gap: 10px;
 }
 
-/* ... (Seu CSS da Sidebar e variáveis Dark Mode está acima) ... */
-
-/* Ajuste do Main Content para evitar sobreposição */
-.main-content {
-    margin-left: 280px; 
-    padding-top: 20px;
-    padding-bottom: 50px;
+/* Logo no topo */
+.sidebar .navbar-brand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.sidebar .navbar-brand img {
+  width: 160px;
+  max-width: 90%;
+  transition: all 0.4s ease;
+  filter: drop-shadow(0px 0px 6px rgba(255, 190, 120, 0.4));
+}
+.sidebar.is-collapsed .navbar-brand img {
+  width: 45px;
 }
 
-/* --- ESTILOS DO LAYOUT DE 3 COLUNAS --- */
-/* (Garante que Feed e Sidebar se alinhem bem) */
+/* Links principais */
+.sidebar .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--subtext-color);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  position: relative;
+}
+.sidebar .nav-link i {
+  font-size: 1.3rem;
+  transition: transform 0.25s ease;
+}
+.sidebar .nav-link:hover i {
+  transform: scale(1.1);
+}
+.sidebar .nav-link:hover {
+  background-color: var(--hover-color);
+  color: #fff;
+}
 
+/* Item ativo */
+.sidebar .nav-link.active,
+.sidebar .nav-link.fw-bold {
+  background: linear-gradient(90deg, #c47333 0%, #a15424 100%);
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(164, 84, 36, 0.4);
+}
+
+/* Badge de notificações */
+.notification-badge {
+  background-color: #ed4956;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 7px;
+  position: absolute;
+  right: 14px;
+}
+
+/* Estado colapsado */
+.sidebar.is-collapsed {
+  width: 80px;
+}
+.sidebar.is-collapsed .nav-link {
+  justify-content: center;
+  padding: 10px 0;
+}
+.sidebar.is-collapsed .nav-text,
+.sidebar.is-collapsed .notification-badge {
+  display: none !important;
+}
+.sidebar.is-collapsed .navbar-brand {
+  padding: 6px 0;
+  text-align: center;
+}
+
+/* Rodapé */
+.sidebar-footer {
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  color: var(--subtext-color);
+  font-size: 11px;
+  padding: 12px 0;
+}
+
+/* Responsivo — sidebar recolhe em telas menores */
+@media (max-width: 840px) {
+  .app-shell {
+    grid-template-columns: 64px 1fr;
+  }
+  .sidebar {
+    width: 64px !important;
+  }
+}
+
+/* ============================= */
+/* LAYOUT CENTRAL (FEED)         */
+/* ============================= */
 .feed-col-style {
-    max-width: 630px; /* Largura máxima para o feed (padrão Instagram) */
-    padding-right: 28px !important;
+  max-width: 630px;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+  margin: 0 auto;
 }
 .sidebar-col-style-right {
-    padding-left: 30px !important;
-    padding-right: 20px !important;
-    max-width: 320px;
+  padding-left: 30px !important;
+  padding-right: 20px !important;
+  max-width: 320px;
 }
-.sidebar-sticky {
-    position: sticky;
-    top: 20px; 
-}
+.sidebar-sticky { position: sticky; top: 20px; }
 
+#app-content { padding-top: 5px; }
+.empty-feed-message { margin-top: 80px; }
 
-/* --- RESPONSIVIDADE (Mobile/Tablet) --- */
-
-/* Abaixo de telas grandes (Large), esconde a sidebar esquerda */
-@media (max-width: 992px) {
-    #sidebar-left {
-        display: none !important;
-    }
-    .main-content {
-        margin-left: 0; 
-    }
-    .feed-col-style {
-        padding-right: 0 !important; /* Remove o padding extra em mobile/tablet */
-    }
-}
-
-/* Abaixo de telas médias (Tablet), esconde a sidebar direita */
-@media (max-width: 768px) {
-    .sidebar-col-style-right {
-        display: none !important;
-    }
-    .feed-col-style {
-        max-width: 100%; /* Ocupa a largura total */
-        padding: 0 10px !important; /* Adiciona padding nas laterais do celular */
-    }
-    .main-content {
-        padding-top: 10px;
-        padding-bottom: 60px; /* Espaço para futura nav de baixo */
-    }
-}
-
-
-/* --- ESTILO DO FEED DE POSTAGENS --- */
-
-#app-content {
-    /* Garante que o conteúdo do feed comece logo após a margem superior */
-    padding-top: 5px; 
-}
-
-/* Estilo para quando não houver posts */
-.empty-feed-message {
-    margin-top: 80px;
-}
-
-/* --- RESPONSIVIDADE (Mobile/Tablet) --- */
-
-/* Abaixo de telas grandes (Large), esconde a sidebar e move o conteúdo */
-@media (max-width: 992px) {
-    #sidebar-left {
-        display: none !important; /* Esconde a sidebar */
-    }
-    .main-content {
-        margin-left: 0; /* Remove o margin para centralizar */
-    }
-}
-
-/* --- ESTILO DO POSTCARD (O Cartão Instagram/Vaquerama) --- */
-
+/* ============================= */
+/* POST CARD (Instagram-like)    */
+/* ============================= */
 .post-card {
-    /* Base: Fundo preto e borda sutil no nosso Dark Mode */
-    background-color: var(--bg-dark); 
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    margin-bottom: 30px; /* Espaço entre os posts */
-    width: 100%;
+  background-color: #000;
+  border: 1px solid #262626;
+  border-radius: 0;
+  margin-bottom: 24px;
+  width: 100%;
 }
-
-/* 1. CABEÇALHO DO POST */
 .post-header {
-    padding: 10px 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .post-header .profile-icon {
-    /* Icone de perfil (será a foto real depois) */
-    width: 38px; height: 38px; border-radius: 50%;
-    background-color: var(--accent-color);
-    display: flex; justify-content: center; align-items: center;
-    font-size: 18px; margin-right: 10px; color: var(--bg-dark); font-weight: bold;
-    cursor: pointer;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--accent-color);
+  display: flex; justify-content: center; align-items: center;
+  font-size: 18px; margin-right: 10px; color: var(--bg-dark); font-weight: 700;
+  cursor: pointer;
 }
-.post-header .author-name {
-    font-weight: bold; font-size: 14px;
-    cursor: pointer;
-}
-.post-header .author-type {
-    font-size: 12px; color: var(--subtext-color);
-}
-.post-options {
-    color: var(--subtext-color); 
-    cursor: pointer; 
-    font-size: 20px;
-    padding: 5px; /* Para facilitar o toque no mobile */
-}
+.post-header .author-name { font-weight: 700; font-size: 14px; cursor: pointer; }
+.post-header .author-type { font-size: 12px; color: var(--subtext-color); }
+.post-options { color: var(--subtext-color); cursor: pointer; font-size: 20px; padding: 5px; }
 
-/* 2. MÍDIA DO POST */
 .post-media {
-    /* Garante que a imagem/vídeo ocupe o espaço corretamente */
-    width: 100%;
-    height: auto; 
-    max-height: 600px;
-    overflow: hidden;
-    background-color: #0a0a0a; /* Fundo mais escuro para preencher */
-    display: flex; justify-content: center; align-items: center;
+  width: 100%; height: auto; max-height: 600px; overflow: hidden;
+  background: #0a0a0a;
+  display: flex; justify-content: center; align-items: center;
 }
-.post-media img {
-    width: 100%;
-    height: auto;
-    display: block;
-    object-fit: cover; /* Recorta a imagem para cobrir a área se precisar */
-}
+.post-media img { width: 100%; height: auto; display: block; object-fit: cover; }
 
-/* 3. AÇÕES (ÍCONES) */
 .post-actions {
-    display: flex; 
-    align-items: center; 
-    padding: 8px 15px; 
-    font-size: 24px;
+  display: flex; align-items: center; gap: 16px;
+  padding: 8px 16px; font-size: 22px;
 }
 .action-icon {
-    margin-right: 18px;
-    cursor: pointer;
-    transition: color 0.2s;
-    padding: 5px; /* Área de clique maior para mobile */
+  cursor: pointer; transition: color 0.2s, opacity 0.2s, transform 0.2s;
+  padding: 5px;
+  opacity: 0.85;
 }
-.action-icon:hover {
-    color: var(--subtext-color);
-}
-.action-icon.like-active {
-    color: red !important;
+.action-icon:hover { color: var(--subtext-color); opacity: 1; transform: scale(1.05); }
+.action-icon.like-active { color: #ed4956 !important; animation: pop 0.25s ease-in-out; }
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
 }
 
-/* 4. METADATA E LEGENDA */
-.post-likes {
-    font-weight: bold; 
-    font-size: 14px; 
-    padding: 0 15px 5px 15px;
-    cursor: pointer;
-}
-.post-caption {
-    font-size: 14px; 
-    padding: 0 15px 10px 15px;
-}
-.post-caption .author-name {
-    font-weight: bold; 
-    margin-right: 5px;
-}
+.post-likes { font-weight: 700; font-size: 13px; padding: 0 16px 6px 16px; cursor: pointer; }
+.post-caption { font-size: 13px; padding: 0 16px 10px 16px; line-height: 1.4; }
+.post-caption .author-name { font-weight: 700; margin-right: 6px; }
 .post-metadata {
-    font-size: 10px; 
-    padding: 5px 15px 10px 15px; 
-    color: var(--subtext-color); 
-    text-transform: uppercase;
-    border-top: 1px solid var(--border-color); /* Separa do corpo do post */
+  font-size: 11px; padding: 0 16px 12px 16px; color: var(--subtext-color);
+  text-transform: uppercase; border-top: 1px solid var(--border-color);
 }
+.view-comments { color: var(--subtext-color); cursor: pointer; font-size: 13px; }
+.post-date { margin: 0; color: var(--subtext-color); }
 
-/* --- AJUSTES FINOS DO PERFIL (ETAPA 11.5) --- */
+/* ============================= */
+/* PERFIL — Ajustes finos        */
+/* ============================= */
+.profile-container { padding-left: 15px; padding-right: 15px; }
 
-.profile-container {
-    /* Garante que o container tenha um pequeno padding extra se necessário */
-    padding-left: 15px; 
-    padding-right: 15px;
-}
-
-/* 1. AFSTAR A COLUNA DE INFORMAÇÕES DA FOTO (Ajuste Horizontal) */
-/* Em telas maiores que tablet (>= 768px), move o conteúdo da Coluna 9 um pouco para a direita. */
 @media (min-width: 768px) {
-    .profile-container .col-md-9 {
-        /* Adiciona margem à esquerda para afastar da foto (que está na Coluna 3) */
-        padding-left: 0px !important; /* Aumente este valor (ex: 50px) se precisar de mais espaço */
-    }
+  .profile-container .col-md-9 { padding-left: 0 !important; }
 }
 
+.profile-container .col-md-9 { padding-top: 10px; }
 
-/* 2. ESPAÇAMENTO VERTICAL ENTRE OS BLOCOS */
-/* Aplica margem TOP para afastar o conteúdo do topo da Coluna 9 */
-.profile-container .col-md-9 {
-    padding-top: 10px; /* Adiciona um pequeno padding no topo da coluna de info */
-}
-
-/* 3. ESPAÇAMENTO ENTRE O NOME DE USUÁRIO E A LOCALIZAÇÃO/CONTADORES */
-/* O bloco do Username (h2) e Botão */
 .profile-container .d-flex.align-items-center.mb-3 {
-    margin-bottom: 1.5rem !important; /* Aumenta a margem inferior para dar mais espaço */
+  margin-bottom: 1.5rem !important;
 }
 
-/* 4. ESPAÇAMENTO ENTRE OS CONTADORES E A BIOGRAFIA */
-/* O bloco dos Contadores (Posts, Seguidores, Seguindo) */
 .profile-container .d-flex.mb-4.text-white {
-    /* Garante que haja espaço abaixo dos contadores */
-    margin-bottom: 2rem !important;
+  margin-bottom: 2rem !important;
 }
 
-/* 5. ESPAÇAMENTO ENTRE O NOME REAL E O TIPO DE USUÁRIO */
-/* O h5 que contém o Nome Real */
-.profile-container h5.mb-1 {
-    margin-top: 1rem !important; /* Adiciona espaço acima do nome real */
-}
+.profile-container h5.mb-1 { margin-top: 1rem !important; }
 
-/* 6. CORREÇÃO DE ALINHAMENTO DO BOTÃO "EDITAR PERFIL" */
-/* Se os elementos ainda estiverem muito juntos, você pode aplicar um flexbox mais forte */
-.profile-container .d-flex.align-items-center {
-    align-items: flex-start !important; /* Garante que os elementos se alinhem no topo */
-}
-
-/* --- AJUSTE FINO DA FOTO DE PERFIL EM DESKTOP (ETAPA 11.7) --- */
+.profile-container .d-flex.align-items-center { align-items: flex-start !important; }
 
 @media (min-width: 768px) {
-    /* 1. Mover a foto para cima */
-    .profile-container .col-md-3 img {
-        /* Usa margem negativa no topo para subir a foto um pouco para fora do card */
-        margin-top: -30px !important; 
-        /* Adiciona sombra para dar efeito de profundidade, se necessário. */
-        /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); */
-         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-         position: relative;
-         right: 20px;
-    }
-    
-    /* 2. Mover o cartão de perfil um pouco para a esquerda */
-    /* Isso fará com que a foto arredonde para a esquerda com a margem negativa. */
-    .profile-container .bg-card {
-        /* Adiciona um pequeno padding extra à esquerda do cartão para criar o 'respiro' */
-        padding-left: 25px !important;
-        
-    }
-    
+  .profile-container .col-md-3 img {
+    margin-top: -30px !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    position: relative;
+    right: 20px;
+  }
+  .profile-container .bg-card { padding-left: 25px !important; }
 }
 
-/* --- EFEITO DE LUZ NEON NA FOTO DE PERFIL (ETAPA 11.9) --- */
-
-/* Aplica o efeito à imagem da foto de perfil em qualquer tamanho de tela */
-.profile-container .col-md-3 img, /* Seleciona a imagem na coluna de desktop */
-.profile-container .d-block.d-md-none img { /* Seleciona a imagem na coluna mobile */
-    /* Remove a borda existente (se houver, para que o neon seja o destaque) */
-    /* border: none !important; */ 
-
-    /* Define o efeito de sombra/brilho */
-    box-shadow: 
-        0 0 10px var(--accent-color), /* Brilho interno */
-        0 0 20px var(--accent-color), /* Brilho médio */
-        0 0 30px var(--accent-color); /* Brilho externo mais difuso */
-    
-    /* Adiciona uma pequena transição para um efeito suave ao carregar/interagir */
-    transition: box-shadow 0.3s ease-in-out;
-
-    /* Opcional: Efeito hover para intensificar */
-    /*
-    &:hover {
-        box-shadow: 
-            0 0 15px var(--accent-color),
-            0 0 30px var(--accent-color),
-            0 0 45px var(--accent-color);
-    }
-    */
+.profile-container .col-md-3 img,
+.profile-container .d-block.d-md-none img {
+  box-shadow:
+    0 0 10px var(--accent-color),
+    0 0 20px var(--accent-color),
+    0 0 30px var(--accent-color);
+  transition: box-shadow 0.3s ease-in-out;
 }
 
-
-/* --- BOTÃO FLUTUANTE DE CRIAÇÃO (MOBILE UX) --- */
-
+/* ============================= */
+/* BOTÃO FLUTUANTE (MOBILE)      */
+/* ============================= */
 .floating-create-button {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
-    display: flex !important;
-    justify-content: center;
-    align-items: center;
-    text-decoration: none;
-    z-index: 1000;
-    transition: transform 0.2s;
+  position: fixed; bottom: 20px; right: 20px;
+  width: 50px; height: 50px; font-size: 24px;
+  display: flex !important; justify-content: center; align-items: center;
+  text-decoration: none; z-index: 1000; transition: transform 0.2s;
 }
+.floating-create-button:hover { transform: scale(1.1); }
+@media (min-width: 992px) { .floating-create-button { display: none !important; } }
 
-.floating-create-button:hover {
-    transform: scale(1.1);
-}
-
-/* Esconde no Desktop, pois a Sidebar já existe */
-@media (min-width: 992px) {
-    .floating-create-button {
-        display: none !important;
-    }
-}
-
-/* --- ESTILOS DA SEÇÃO DE COMENTÁRIOS (ETAPA 16.0) --- */
-
+/* ============================= */
+/* COMENTÁRIOS                   */
+/* ============================= */
 .comment-profile-icon {
-    width: 30px; 
-    height: 30px; 
-    border-radius: 50%;
-    background-color: var(--subtext-color);
-    display: flex; 
-    justify-content: center; 
-    align-items: center;
-    font-size: 14px; 
-    color: var(--bg-dark); 
-    overflow: hidden;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--subtext-color);
+  display: flex; justify-content: center; align-items: center;
+  font-size: 14px; color: var(--bg-dark); overflow: hidden;
 }
+.comment-profile-icon img { width: 100%; height: 100%; object-fit: cover; }
+.comment-list .form-control { border-radius: 20px; }
 
-.comment-profile-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.comment-list .form-control {
-    border-radius: 20px;
-}
-
-/* --- ESTILOS DA GALERIA DE PERFIL (Miniaturas) --- */
-
+/* ============================= */
+/* GALERIA DE PERFIL (grid)      */
+/* ============================= */
 .post-mini-card {
-    display: block;
-    width: 100%;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    border: 1px solid var(--border-color); /* Borda sutil */
+  display: block; width: 100%; position: relative; overflow: hidden; cursor: pointer;
+  border: 1px solid var(--border-color);
 }
-
-.post-mini-image-wrapper {
-    position: relative;
-    padding-bottom: 100%; /* Força a proporção 1:1 (quadrado) */
-    overflow: hidden;
-}
-
+.post-mini-image-wrapper { position: relative; padding-bottom: 100%; overflow: hidden; }
 .post-mini-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s;
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.3s;
 }
-
 .post-mini-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-    color: var(--text-color);
-    opacity: 0;
-    transition: opacity 0.3s;
-    font-weight: bold;
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.4); color: var(--text-color);
+  opacity: 0; transition: opacity 0.3s; font-weight: 700;
 }
+.post-mini-card:hover .post-mini-overlay { opacity: 1; }
+.post-mini-card:hover .post-mini-image { transform: scale(1.05); }
 
-/* Efeito Hover (UI/UX) */
-.post-mini-card:hover .post-mini-overlay {
-    opacity: 1;
-}
-
-.post-mini-card:hover .post-mini-image {
-    transform: scale(1.05);
-}
-
-/* src/styles/global.css - ADICIONAR AO FINAL */
-
-/* ========================================= */
-/* ESTILOS MOBILE - BOTTOM NAV (ETAPA 18.2) */
-/* ========================================= */
-
+/* ============================= */
+/* BOTTOM NAV (MOBILE)           */
+/* ============================= */
 .bottom-nav {
-    /* Fundo escuro, acima de tudo (z-index) */
-    background-color: var(--card-bg); 
-    border-top: 1px solid var(--border-color);
-    height: 56px; /* Altura padrão para navegação mobile */
-    z-index: 1030; 
-    padding: 0 10px; 
+  background-color: var(--card-bg);
+  border-top: 1px solid var(--border-color);
+  height: 56px;
+  z-index: 1030;
+  padding: 0 10px;
 }
-
 .nav-link-mobile {
-    color: var(--subtext-color) !important;
-    padding: 5px 0;
-    transition: color 0.2s;
-    text-decoration: none;
-    line-height: 1; 
+  color: var(--subtext-color) !important;
+  padding: 5px 0; line-height: 1; text-decoration: none;
+  transition: color 0.2s;
 }
-
-/* Estado Ativo (Dourado da Vaquejada) */
 .nav-link-mobile:hover,
-.nav-link-mobile.active-mobile-link {
-    color: var(--accent-color) !important;
-}
+.nav-link-mobile.active-mobile-link { color: var(--accent-color) !important; }
 
-/* CORREÇÃO DE LAYOUT: Espaçamento para o conteúdo não ficar por baixo da bottom nav */
 @media (max-width: 991.98px) {
-    .main-content {
-        /* Adiciona um padding na parte de baixo igual à altura da nav */
-        padding-bottom: 56px; 
-    }
-    
-    /* Garante que o conteúdo vá até o topo em mobile */
-    #app-content {
-        padding-top: 0 !important;
-    }
+  .main-content { padding-bottom: 56px; }
+  #app-content { padding-top: 0 !important; }
 }
 
-
-/* src/styles/global.css - ADICIONAR AO FINAL */
-
-/* src/styles/global.css - ADICIONAR AO FINAL */
-
-/* --- WIDGET DE CHAT FLUTUANTE --- */
-
+/* ============================= */
+/* CHAT WIDGET FLUTUANTE         */
+/* ============================= */
 .chat-widget {
-    position: fixed;
-    bottom: 0;
-    right: 20px;
-    z-index: 1040; /* Abaixo de modais, mas acima do conteúdo */
+  position: fixed; bottom: 0; right: 20px; z-index: 1040;
 }
-
-/* O botão "Mensagens" que fica visível */
 .chat-widget-button {
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    border-radius: 12px 12px 0 0;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
+  background: var(--card-bg); color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px 12px 0 0;
+  padding: 10px 20px; cursor: pointer; font-weight: 700;
+  display: flex; align-items: center;
 }
-.chat-widget-button i {
-    margin-right: 8px;
-}
-
-/* A janela que abre com a lista de conversas */
+.chat-widget-button i { margin-right: 8px; }
 .chat-widget-window {
-    width: 350px;
-    height: 450px;
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px 12px 0 0;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  width: 350px; height: 450px; background: var(--card-bg);
+  border: 1px solid var(--border-color); border-radius: 12px 12px 0 0;
+  display: flex; flex-direction: column;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
-
 .chat-widget-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-color);
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-bottom: 1px solid var(--border-color);
 }
-.chat-widget-header h5 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: bold;
-}
+.chat-widget-header h5 { margin: 0; font-size: 1rem; font-weight: 700; }
 .chat-widget-header .close-btn {
-    background: none;
-    border: none;
-    color: var(--subtext-color);
-    font-size: 1.5rem;
-    cursor: pointer;
+  background: none; border: none; color: var(--subtext-color);
+  font-size: 1.5rem; cursor: pointer;
 }
+@media (max-width: 992px) { .chat-widget { display: none; } }
 
-/* Esconde o widget em telas de tablet e mobile */
+/* ============================= */
+/* MOBILE: esconder sidebar, fix feed full-width  */
+/* ============================= */
 @media (max-width: 992px) {
-    .chat-widget {
-        display: none;
-    }
+  .app-shell { grid-template-columns: 1fr !important; }
+  .sidebar, #sidebar-left {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none;
+  }
+  .app-content, .main-content {
+    margin: 0 !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    height: auto !important;
+    min-height: 100dvh;
+    overflow: auto !important;
+  }
+  .container-fluid { padding-left: 0 !important; padding-right: 0 !important; }
+  .row { margin-left: 0 !important; margin-right: 0 !important; }
+  .feed-col-style { max-width: 100% !important; padding: 0 !important; }
+  #app-content { padding-bottom: 56px !important; padding-top: 0 !important; }
 }
 
-/* Estilo do Balão de Notificação */
-.notification-badge {
-  background-color: #ed4956; /* Vermelho do Instagram */
-  color: white;
-  border-radius: 50%;
-  padding: 1px 6px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  position: absolute; /* Posição relativa ao link */
-  top: 10px;
-  right: 15px; /* Ajuste conforme necessário */
-  border: 1px solid var(--bg-dark);
+.sidebar-logo {
+  width: 160px;
+  max-width: 90%;
+  height: auto;
+  transition: all 0.4s ease;
+  filter: drop-shadow(0px 0px 6px rgba(255, 190, 120, 0.4));
 }
-/* Garante que o container do link seja a referência de posição */
-#sidebar-left .nav-link {
-    position: relative;
+
+.sidebar.is-collapsed .sidebar-logo {
+  width: 45px;
+}
+
+.sidebar .navbar-brand img {
+  width: 150px;
+  max-width: 90%;
+  height: auto;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+.sidebar.is-collapsed .navbar-brand img {
+  width: 45px;
+}
+
+
+
+/* ============================= */
+/* SIDEBAR GLASS (TRANSPARENTE)  */
+/* ============================= */
+.sidebar-glass {
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 6px 0 20px rgba(0, 0, 0, 0.5);
+  color: #eee;
+}
+
+.nav-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #cfcfcf;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 10px 16px;
+  border-radius: 12px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  transition: all 0.25s ease;
+}
+
+.nav-item-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 12px rgba(255, 150, 50, 0.2);
+  transform: translateX(3px);
+}
+
+.active-nav {
+  color: #fff;
+  background: linear-gradient(90deg, #c47333 0%, #a15424 100%);
+  box-shadow: 0 0 12px rgba(200, 100, 40, 0.4);
+  font-weight: 600;
+}
+
+.notif-badge {
+  background-color: #ed4956;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  margin-left: auto;
 }

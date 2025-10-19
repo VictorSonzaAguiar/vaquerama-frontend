@@ -1,18 +1,16 @@
-// src/pages/Messages.jsx
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useParams } from "react-router-dom";
+import { InputGroup, FormControl, Spinner } from "react-bootstrap";
+import apiClient from "../api/api";
+import io from "socket.io-client";
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { InputGroup, FormControl, Spinner } from 'react-bootstrap';
-import apiClient from '../api/api';
-import io from 'socket.io-client';
-
-import ConversationList from '../components/ConversationList';
-import useAuth from '../hooks/useAuth';
-import { useNotifications } from '../context/NotificationContext';
-import '../styles/Messages.css';
+import ConversationList from "../components/ConversationList";
+import useAuth from "../hooks/useAuth";
+import { useNotifications } from "../context/NotificationContext";
+import "../styles/Messages.css";
 
 const SOCKET_SERVER_URL = "http://localhost:3000";
-const BACKEND_BASE_URL = 'http://localhost:3000';
+const BACKEND_BASE_URL = "http://localhost:3000";
 
 const Messages = () => {
   const { user } = useAuth();
@@ -23,48 +21,41 @@ const Messages = () => {
   const [conversations, setConversations] = useState([]);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [error, setError] = useState(null);
+
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   const selectedConversationRef = useRef(selectedConversation);
-  useEffect(() => {
-    selectedConversationRef.current = selectedConversation;
-  }, [selectedConversation]);
+  useEffect(() => { selectedConversationRef.current = selectedConversation; }, [selectedConversation]);
 
-  // =========================================================
-  // 1. CONEXÃO SOCKET + ATUALIZAÇÃO EM TEMPO REAL
-  // =========================================================
+  const [showListMobile, setShowListMobile] = useState(true);
+
+  const chatEndRef = useRef(null);
+  const scrollToBottom = useCallback(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), []);
+  useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
+
+  // sockets
   useEffect(() => {
     if (!user?.id) return;
-
     clearNotifications();
 
-    // Conecta no Socket.IO
-    socketRef.current = io(SOCKET_SERVER_URL, {
-      transports: ['websocket'],
-    });
-
-    // Registra o usuário logado
-    socketRef.current.on('connect', () => {
+    socketRef.current = io(SOCKET_SERVER_URL, { transports: ["websocket"] });
+    socketRef.current.on("connect", () => {
       socketRef.current.emit("register_user", user.id);
     });
 
-    // Evento: Mensagem Recebida
     const handleReceiveMessage = (incomingMessage) => {
-      // Atualiza mensagens se estiver na conversa aberta
       if (incomingMessage.conversation_id === selectedConversationRef.current?.conversation_id) {
-        setMessages(prev => [...prev, incomingMessage]);
+        setMessages((prev) => [...prev, incomingMessage]);
       }
-
-      // Atualiza lista lateral
-      setConversations(prevConversations => {
-        let updatedConvo = null;
-        const newConvos = prevConversations.filter(c => {
+      setConversations((prev) => {
+        let updated = null;
+        const rest = prev.filter((c) => {
           if (c.conversation_id === incomingMessage.conversation_id) {
-            updatedConvo = {
+            updated = {
               ...c,
               last_message: incomingMessage.content,
               last_message_timestamp: incomingMessage.created_at,
@@ -77,52 +68,42 @@ const Messages = () => {
           }
           return true;
         });
-        if (updatedConvo) {
-          return [updatedConvo, ...newConvos];
-        }
-        return prevConversations;
+        return updated ? [updated, ...rest] : prev;
       });
     };
 
-    // Evento: Atualização da Lista de Conversas
     const handleUpdateConversationList = async () => {
       try {
-        const response = await apiClient.get('/conversations');
-        setConversations(response.data.conversations || []);
-      } catch (err) {
-        console.error("Erro ao atualizar lista:", err);
-      }
+        const res = await apiClient.get("/conversations");
+        setConversations(res.data.conversations || []);
+      } catch (e) { /* silent */ }
     };
 
     socketRef.current.on("receive_message", handleReceiveMessage);
     socketRef.current.on("update_conversation_list", handleUpdateConversationList);
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.off("receive_message", handleReceiveMessage);
-        socketRef.current.off("update_conversation_list", handleUpdateConversationList);
-        socketRef.current.disconnect();
-      }
+      socketRef.current?.off("receive_message", handleReceiveMessage);
+      socketRef.current?.off("update_conversation_list", handleUpdateConversationList);
+      socketRef.current?.disconnect();
     };
   }, [clearNotifications, user?.id]);
 
-  // =========================================================
-  // 2. BUSCA A LISTA DE CONVERSAS
-  // =========================================================
+  // lista de conversas
   useEffect(() => {
     const fetchConversations = async () => {
       setLoadingConversations(true);
       try {
-        const response = await apiClient.get('/conversations');
-        const convos = response.data.conversations || [];
+        const res = await apiClient.get("/conversations");
+        const convos = res.data.conversations || [];
         setConversations(convos);
 
         if (userIdFromUrl) {
-          const targetConvo = convos.find(c => c.participant_id === parseInt(userIdFromUrl));
-          if (targetConvo) setSelectedConversation(targetConvo);
+          const target = convos.find((c) => c.participant_id === parseInt(userIdFromUrl, 10));
+          if (target) { setSelectedConversation(target); setShowListMobile(false); }
         }
-      } catch (err) {
-        setError('Não foi possível carregar suas conversas.');
+      } catch {
+        setError("Não foi possível carregar suas conversas.");
       } finally {
         setLoadingConversations(false);
       }
@@ -130,22 +111,17 @@ const Messages = () => {
     fetchConversations();
   }, [userIdFromUrl]);
 
-  // =========================================================
-  // 3. BUSCA AS MENSAGENS E GERENCIA JOIN/LEAVE
-  // =========================================================
+  // mensagens da conversa
   const fetchMessages = useCallback(async (conversationId) => {
     setLoadingMessages(true);
     try {
-      const response = await apiClient.get(`/messages/${conversationId}`);
-      setMessages(response.data.messages || []);
-
-      setConversations(prev =>
-        prev.map(c =>
-          c.conversation_id === conversationId ? { ...c, unread_count: 0 } : c
-        )
-      );
-    } catch (err) {
-      console.error("Erro ao buscar mensagens:", err);
+      const res = await apiClient.get(`/messages/${conversationId}`);
+      setMessages(res.data.messages || []);
+      setConversations((prev) => prev.map((c) =>
+        c.conversation_id === conversationId ? { ...c, unread_count: 0 } : c
+      ));
+    } catch (e) {
+      console.error("Erro ao buscar mensagens:", e);
     } finally {
       setLoadingMessages(false);
     }
@@ -154,100 +130,130 @@ const Messages = () => {
   useEffect(() => {
     if (selectedConversation) {
       fetchMessages(selectedConversation.conversation_id);
-      if (socketRef.current) {
-        socketRef.current.emit('join_conversation', selectedConversation.conversation_id);
-      }
+      socketRef.current?.emit("join_conversation", selectedConversation.conversation_id);
+      setShowListMobile(false);
     }
     return () => {
-      if (socketRef.current && selectedConversation) {
-        socketRef.current.emit('leave_conversation', selectedConversation.conversation_id);
-      }
+      if (selectedConversation) socketRef.current?.emit("leave_conversation", selectedConversation.conversation_id);
     };
   }, [selectedConversation, fetchMessages]);
 
-  // =========================================================
-  // 4. ENVIO DE MENSAGEM
-  // =========================================================
+  // enviar
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedConversation) return;
     setIsSending(true);
-
     try {
-      const response = await apiClient.post(`/messages/${selectedConversation.conversation_id}`, { content: newMessage });
-      const sentMessage = {
-        id: response.data.messageId,
+      const res = await apiClient.post(`/messages/${selectedConversation.conversation_id}`, { content: newMessage });
+      const sent = {
+        id: res.data?.messageId ?? `tmp-${Date.now()}`,
         sender_id: user.id,
         content: newMessage,
         created_at: new Date().toISOString(),
-        conversation_id: selectedConversation.conversation_id
+        conversation_id: selectedConversation.conversation_id,
       };
-
-      setMessages(prev => [...prev, sentMessage]);
-
-      // Emite mensagem via Socket.IO
-      socketRef.current.emit('send_message', {
-        conversationId: selectedConversation.conversation_id,
-        message: sentMessage,
-      });
-
-      setNewMessage('');
-    } catch (err) {
+      setMessages((prev) => [...prev, sent]);
+      socketRef.current?.emit("send_message", { conversationId: selectedConversation.conversation_id, message: sent });
+      setNewMessage("");
+    } catch {
       alert("Falha ao enviar mensagem.");
     } finally {
       setIsSending(false);
     }
   };
 
-  // =========================================================
-  // 5. RENDERIZAÇÃO
-  // =========================================================
-  if (loadingConversations) return <div className="messages-loading"><Spinner animation="border" variant="light" /></div>;
+  if (loadingConversations)
+    return (
+      <div className="messages-loading">
+        <Spinner animation="border" variant="light" />
+      </div>
+    );
   if (error) return <h2 className="text-center text-danger mt-5">{error}</h2>;
 
   return (
-    <div className="messages-page">
-      <div className="messages-sidebar">
-        <div className="sidebar-header"><h5>{user?.username}</h5></div>
-        <div className="sidebar-search">
+    <div className="dm-shell">
+      {/* lista */}
+      <section className={`dm-list ${showListMobile ? "" : "is-hidden-mobile"}`}>
+        <header className="dm-list__header"><h5 className="mb-0">{user?.username}</h5></header>
+        <div className="dm-list__search">
           <InputGroup>
             <InputGroup.Text className="search-icon"><i className="bi bi-search"></i></InputGroup.Text>
             <FormControl type="text" className="search-input" placeholder="Pesquisar" />
           </InputGroup>
         </div>
-        <ConversationList
-          conversations={conversations}
-          onSelectConversation={setSelectedConversation}
-          selectedConversation={selectedConversation}
-        />
-      </div>
+        <div className="dm-list__threads">
+          <ConversationList
+            conversations={conversations}
+            onSelectConversation={setSelectedConversation}
+            selectedConversation={selectedConversation}
+          />
+        </div>
+      </section>
 
-      <div className="chat-area">
+      {/* chat */}
+      <section className="dm-chat">
         {selectedConversation ? (
-          <div className="chat-wrapper">
-            <div className="chat-header">
-              <h6>{selectedConversation.participant_name}</h6>
-              <div className="chat-actions">
-                <i className="bi bi-telephone"></i> <i className="bi bi-camera-video"></i>
+          <div className="dm-chat__wrapper">
+            <header className="dm-chat__header">
+              <div className="peer">
+                <img
+                  className="peer-avatar"
+                  src={
+                    selectedConversation.participant_photo
+                      ? `${BACKEND_BASE_URL}/uploads/${selectedConversation.participant_photo}`
+                      : "https://via.placeholder.com/40"
+                  }
+                  alt={selectedConversation.participant_name}
+                />
+                <div className="peer-meta">
+                  <strong className="peer-name">{selectedConversation.participant_name}</strong>
+                  <span className="peer-sub">Online há 1 h</span>
+                </div>
+                <button
+                  className="btn-ghost show-list-mobile ms-2"
+                  type="button"
+                  onClick={() => setShowListMobile(true)}
+                  title="Conversas"
+                >
+                  <i className="bi bi-list" />
+                </button>
+              </div>
+              <div className="dm-chat__actions">
+                <button className="btn-ghost" type="button" title="Ligar"><i className="bi bi-telephone" /></button>
+                <button className="btn-ghost" type="button" title="Vídeo"><i className="bi bi-camera-video" /></button>
+                <button className="btn-ghost" type="button" title="Informações"><i className="bi bi-info-circle" /></button>
+              </div>
+            </header>
+
+            <div className="dm-chat__scroll">
+              <div className="dm-chat__content">
+                {loadingMessages ? (
+                  <Spinner animation="border" size="sm" />
+                ) : (
+                  messages.map((msg) => (
+                    <div key={msg.id} className={`message-row ${msg.sender_id === user.id ? "sent" : "received"}`}>
+                      {msg.sender_id !== user.id && (
+                        <img
+                          src={
+                            selectedConversation.participant_photo
+                              ? `${BACKEND_BASE_URL}/uploads/${selectedConversation.participant_photo}`
+                              : "https://via.placeholder.com/28"
+                          }
+                          alt="Perfil"
+                          className="chat-avatar"
+                        />
+                      )}
+                      <div className={`message-bubble ${msg.sender_id === user.id ? "sent" : "received"}`}>
+                        {msg.content}
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div ref={chatEndRef} />
               </div>
             </div>
-            <div className="chat-body">
-              {loadingMessages ? <Spinner animation="border" size="sm" /> : messages.map(msg => (
-                <div key={msg.id} className={`message-container ${msg.sender_id === user.id ? 'sent' : 'received'}`}>
-                  {msg.sender_id !== user.id && (
-                    <img
-                      src={selectedConversation.participant_photo ? `${BACKEND_BASE_URL}/uploads/${selectedConversation.participant_photo}` : 'https://via.placeholder.com/28'}
-                      alt="Perfil"
-                      className="chat-profile-pic"
-                    />
-                  )}
-                  <div className={`message-bubble ${msg.sender_id === user.id ? 'sent' : 'received'}`}>
-                    {msg.content}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <form className="chat-input" onSubmit={handleSendMessage}>
+
+            <form className="dm-chat__input" onSubmit={handleSendMessage}>
               <InputGroup>
                 <FormControl
                   type="text"
@@ -257,17 +263,19 @@ const Messages = () => {
                   onChange={(e) => setNewMessage(e.target.value)}
                   disabled={isSending}
                 />
-                <button type="submit" className="send-btn" disabled={isSending}><i className="bi bi-send"></i></button>
+                <button type="submit" className="send-btn" disabled={isSending}><i className="bi bi-send" /></button>
               </InputGroup>
             </form>
           </div>
         ) : (
-          <div className="empty-chat">
-            <h5>Suas mensagens</h5>
-            <p>Selecione uma conversa para começar.</p>
+          <div className="dm-chat__empty">
+            <div className="dm-chat__content">
+              <h5>Suas mensagens</h5>
+              <p>Selecione uma conversa para começar.</p>
+            </div>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 };

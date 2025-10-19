@@ -1,55 +1,110 @@
-import React from 'react';
-import { NavLink, Link } from 'react-router-dom';
-import 'bootstrap-icons/font/bootstrap-icons.css'; 
-import useAuth from '../hooks/useAuth';
-import { useNotifications } from '../context/NotificationContext'; // ✅ 1. IMPORTA O HOOK DE NOTIFICAÇÃO
+import React, { useState } from "react";
+import { NavLink, Link } from "react-router-dom";
+import {
+  Home,
+  Search,
+  Send,
+  Heart,
+  PlusSquare,
+  User,
+  LogOut,
+} from "lucide-react";
+import useAuth from "../hooks/useAuth";
+import { useNotifications } from "../context/NotificationContext";
+import NotificationModal from "./NotificationModal";
+import logoVaquerama from "../assets/logovaquerama.png";
+import "../styles/sidebar.css";
 
-const Sidebar = () => {
-  const { user, isAuthenticated } = useAuth();
-  const { unreadCount } = useNotifications(); // ✅ 2. PEGA A CONTAGEM DE MENSAGENS NÃO LIDAS
-  
-  const profileRoute = isAuthenticated && user && user.id ? `/profile/${user.id}` : '/login';
+const Sidebar = ({ collapsed = false }) => {
+  const { user, isAuthenticated } = useAuth();
+  const { unreadCount } = useNotifications();
+  const [showNotifications, setShowNotifications] = useState(false);
 
-  const navLinks = [
-    { to: "/feed", icon: "bi-house-door-fill", text: "Feed" },
-    { to: "/explore", icon: "bi-search", text: "Explorar" },
-    // ✅ 3. ADICIONA A CONTAGEM AO LINK DE MENSAGENS
-    { to: "/messages", icon: "bi-send", text: "Mensagens", notificationCount: unreadCount },
-    { to: "/notifications", icon: "bi-heart", text: "Notificações" },
-    { to: "/postar", icon: "bi-plus-square", text: "Criar Post" },
-    { to: profileRoute, icon: "bi-person-circle", text: "Perfil" }, 
-    { to: "/logout", icon: "bi-box-arrow-right", text: "Sair/Login" },
-  ];
+  const profileRoute =
+    isAuthenticated && user?.id ? `/profile/${user.id}` : "/login";
 
-  return (
-    <aside id="sidebar-left" className="fixed-top d-none d-lg-block">
-      <div className="p-3">
-        <Link to="/" className="navbar-brand text-accent fw-bold fs-4 mb-4 d-block">
-          VAQUERAMA
-        </Link>
-        
-        <nav className="nav flex-column">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) => 
-                `nav-link text-white d-flex align-items-center ${isActive ? 'fw-bold' : ''}`
-              }
-            >
-              <i className={`${link.icon} fs-4 me-3`}></i>
-              <span className="nav-text">{link.text}</span>
-              
-              {/* ✅ 4. RENDERIZA O BALÃO DE NOTIFICAÇÃO SE HOUVER MENSAGENS NÃO LIDAS */}
-              {link.notificationCount > 0 && (
-                <span className="notification-badge">{link.notificationCount}</span>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-      </div>
-    </aside>
-  );
+  const toggleNotifications = (e) => {
+    e.preventDefault();
+    setShowNotifications((prev) => !prev);
+  };
+
+  const navLinks = [
+    { to: "/feed", icon: <Home size={22} />, text: "Feed" },
+    { to: "/explore", icon: <Search size={22} />, text: "Explorar" },
+    { to: "/messages", icon: <Send size={22} />, text: "Mensagens" },
+    {
+      to: "#",
+      icon: <Heart size={22} />,
+      text: "Notificações",
+      isNotification: true,
+    },
+    { to: "/postar", icon: <PlusSquare size={22} />, text: "Criar Post" },
+    { to: profileRoute, icon: <User size={22} />, text: "Perfil" },
+    { to: "/logout", icon: <LogOut size={22} />, text: "Sair/Login" },
+  ];
+
+  return (
+    <>
+      <aside
+        className={`ig-sidebar ${collapsed ? "collapsed" : ""}`}
+        aria-label="Sidebar"
+      >
+        <div className="ig-sidebar-inner">
+          {/* LOGO TOPO */}
+          <div className="ig-logo-top">
+            <div className="ig-logo-container">
+              <Link to="/" className="ig-logo-link" title="Vaquerama">
+                <img
+                  src={logoVaquerama}
+                  alt="Vaquerama logo"
+                  className="ig-logo"
+                />
+              </Link>
+            </div>
+          </div>
+
+          {/* NAVEGAÇÃO */}
+          <nav className="ig-nav" aria-label="Main navigation">
+            {navLinks.map((link) =>
+              link.isNotification ? (
+                <button
+                  key={link.text}
+                  onClick={toggleNotifications}
+                  className="nav-item"
+                  type="button"
+                >
+                  <span className="nav-icon">{link.icon}</span>
+                  {!collapsed && <span className="nav-text">{link.text}</span>}
+                  {!collapsed && unreadCount > 0 && (
+                    <span className="nav-badge">{unreadCount}</span>
+                  )}
+                </button>
+              ) : (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `nav-item ${isActive ? "active" : ""}`
+                  }
+                  title={link.text}
+                >
+                  <span className="nav-icon">{link.icon}</span>
+                  {!collapsed && <span className="nav-text">{link.text}</span>}
+                </NavLink>
+              )
+            )}
+          </nav>
+
+          <div className="ig-sidebar-spacer" />
+        </div>
+      </aside>
+
+      <NotificationModal
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
+    </>
+  );
 };
 
 export default Sidebar;

@@ -17,6 +17,7 @@ import EditProfile from './pages/EditProfile';
 import PostDetail from './pages/PostDetail';
 import Explore from './pages/Explore';
 import Messages from './pages/Messages';
+import Notifications from './pages/Notifications';
 
 const TempPage = ({ title }) => <h2 className="text-center text-white mt-5">{title} em construção...</h2>;
 
@@ -44,7 +45,8 @@ function App() {
             {/* Rota específica para quando vier de um perfil de usuário */}
             <Route path="messages/:id" element={<Messages />} /> 
             
-            <Route path="notifications" element={<TempPage title="Notificações" />} />
+            <Route path="/notifications" element={<Notifications />} />
+
         </Route>
         
         {/* Rota 404 */}

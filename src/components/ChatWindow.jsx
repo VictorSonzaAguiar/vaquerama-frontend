@@ -1,146 +1,199 @@
-// src/components/ChatWindow.jsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Spinner, InputGroup, FormControl } from 'react-bootstrap';
-import apiClient from '../api/api';
-import useAuth from '../hooks/useAuth';
-import io from 'socket.io-client'; // 👈 importar o socket
-import '../styles/ChatWindow.css';
+// ===============================================================
+// 🌵 ChatWindow.jsx — versão FINAL corrigida com apiClient + JWT
+// ===============================================================
 
-const BACKEND_BASE_URL = 'http://localhost:3000';
-const SOCKET_SERVER_URL = 'http://localhost:3000'; // 👈 igual no Messages.jsx
+import React, { useState, useEffect, useRef } from "react";
+import { Spinner } from "react-bootstrap";
+import { io } from "socket.io-client";
+import apiClient from "../api/api"; // ✅ Usa o apiClient com interceptor JWT
+import "../styles/ChatWindow.css";
 
-const ChatWindow = ({ conversation, onBack }) => {
-  const { user } = useAuth();
+const BACKEND_BASE_URL =
+  import.meta.env.VITE_BACKEND_BASE_URL || "http://192.168.3.9:3000";
+
+const ChatWindow = ({ conversation, user, onBack }) => {
+  // === Proteção inicial contra dados vazios ===
+  if (!conversation || !conversation.id) {
+    return (
+      <div className="chat-window">
+        <div className="chat-header">
+          <div className="header-left">
+            <button onClick={onBack} className="back-btn">
+              <i className="bi bi-arrow-left"></i>
+            </button>
+            <div className="header-user">
+              <img src="https://placehold.co/40x40?text=?" alt="Perfil" />
+              <span className="username">Carregando...</span>
+            </div>
+          </div>
+        </div>
+        <div className="chat-body loading">Carregando conversa...</div>
+      </div>
+    );
+  }
+
+  // === Estados principais ===
   const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const socketRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
-  const socketRef = useRef(null); // 👈 adicionar
-
-  // =========================
-  // 1. Buscar histórico
-  // =========================
-  const fetchMessages = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await apiClient.get(`/messages/${conversation.conversation_id}`);
-      setMessages(response.data.messages || []);
-    } catch (err) {
-      console.error("Erro ao buscar mensagens no widget:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [conversation.conversation_id]);
-
-  // =========================
-  // 2. Conexão Socket
-  // =========================
+  // === Inicializa Socket.IO ===
   useEffect(() => {
-    socketRef.current = io(SOCKET_SERVER_URL);
-
-    // Entrar na sala da conversa
-    socketRef.current.emit('join_conversation', conversation.conversation_id);
-
-    // Listener: receber mensagens em tempo real
-    socketRef.current.on('receive_message', (incomingMessage) => {
-      if (incomingMessage.conversation_id === conversation.conversation_id) {
-        setMessages(prev => [...prev, incomingMessage]);
-      }
+    socketRef.current = io(BACKEND_BASE_URL, {
+      transports: ["websocket"],
+      withCredentials: true,
     });
 
-    // Cleanup: sair da sala e desconectar
+    socketRef.current.emit("joinConversation", conversation.id);
+
+    socketRef.current.on("receiveMessage", (message) => {
+      setMessages((prev) => [...prev, message]);
+    });
+
     return () => {
-      if (socketRef.current) {
-        socketRef.current.emit('leave_conversation', conversation.conversation_id);
-        socketRef.current.disconnect();
+      socketRef.current.disconnect();
+    };
+  }, [conversation.id]);
+
+  // === Busca mensagens da conversa (com token JWT) ===
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const res = await apiClient.get(`/messages/${conversation.id}`);
+        const data = res.data?.messages || [];
+        setMessages(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Erro ao buscar mensagens:", err);
+        setMessages([]);
+      } finally {
+        setLoading(false);
       }
     };
-  }, [conversation.conversation_id]);
 
-  // =========================
-  // 3. Buscar mensagens no load
-  // =========================
-  useEffect(() => {
     fetchMessages();
-  }, [fetchMessages]);
+  }, [conversation.id]);
 
-  // =========================
-  // 4. Enviar mensagem
-  // =========================
+  // === Scroll automático ao final ===
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // === Enviar mensagem ===
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
+    if (!conversation?.id || !user?.id) return;
 
-    setIsSending(true);
+    const msg = {
+      conversation_id: conversation.id,
+      sender_id: user.id,
+      content: newMessage.trim(),
+      created_at: new Date().toISOString(),
+    };
+
     try {
-      const response = await apiClient.post(`/messages/${conversation.conversation_id}`, { content: newMessage });
+      setIsSending(true);
 
-      const sentMessage = {
-        id: response.data.messageId,
-        sender_id: user.id,
-        content: newMessage,
-        created_at: new Date().toISOString(),
-        conversation_id: conversation.conversation_id,
-      };
+      // Exibe instantaneamente no chat
+      setMessages((prev) => [...prev, msg]);
 
-      setMessages(prev => [...prev, sentMessage]);
+      // Envia via socket
+      socketRef.current.emit("sendMessage", msg);
 
-      // 👇 Emite via socket para o outro usuário
-      socketRef.current.emit('send_message', {
-        conversationId: conversation.conversation_id,
-        message: sentMessage,
-      });
+      // Envia via API (com JWT automático)
+      await apiClient.post(`/messages/${conversation.id}`, msg);
 
-      setNewMessage('');
+      setNewMessage("");
     } catch (err) {
-      alert("Falha ao enviar mensagem.");
+      console.error("Erro ao enviar mensagem:", err);
     } finally {
       setIsSending(false);
     }
   };
 
-  // =========================
-  // 5. Renderização
-  // =========================
+  // === Render ===
   return (
     <div className="chat-window">
-      <div className="chat-window-header">
-        <button onClick={onBack} className="back-btn">&larr;</button>
-        <h6>{conversation.participant_name}</h6>
-      </div>
-
-      <div className="chat-window-body">
-        {loading ? <Spinner size="sm" /> : messages.map(msg => (
-          <div key={msg.id} className={`message-container ${msg.sender_id === user.id ? 'sent' : 'received'}`}>
-            {msg.sender_id !== user.id && (
-              <img
-                src={conversation.participant_photo
-                  ? `${BACKEND_BASE_URL}/uploads/${conversation.participant_photo}`
-                  : 'https://via.placeholder.com/28'}
-                alt="Perfil"
-                className="chat-profile-pic"
-              />
-            )}
-            <div className={`message-bubble ${msg.sender_id === user.id ? 'sent' : 'received'}`}>
-              {msg.content}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <form className="chat-window-input" onSubmit={handleSendMessage}>
-        <InputGroup>
-          <FormControl
-            placeholder="Mensagem..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            disabled={isSending}
-          />
-          <button type="submit" disabled={isSending}>
-            <i className="bi bi-send"></i>
+      {/* ===== HEADER ===== */}
+      <div className="chat-header">
+        <div className="header-left">
+          <button onClick={onBack} className="back-btn">
+            <i className="bi bi-arrow-left"></i>
           </button>
-        </InputGroup>
+          <div className="header-user">
+            <img
+              src={
+                conversation.participant_photo
+                  ? `${BACKEND_BASE_URL}/uploads/${conversation.participant_photo}`
+                  : "https://placehold.co/40x40?text=U"
+              }
+              alt="Perfil"
+            />
+            <span className="username">
+              {conversation.participant_name || "Usuário"}
+            </span>
+          </div>
+        </div>
+        <div className="header-actions">
+          <i className="bi bi-info-circle"></i>
+        </div>
+      </div>
+
+      {/* ===== BODY ===== */}
+      <div className="chat-body">
+        {loading ? (
+          <div className="loading">
+            <Spinner animation="border" size="sm" />
+          </div>
+        ) : messages.length > 0 ? (
+          messages.map((msg, idx) => (
+            <div
+              key={idx}
+              className={`message-wrapper ${
+                msg.sender_id === user.id ? "sent" : "received"
+              }`}
+            >
+              {msg.sender_id !== user.id && (
+                <img
+                  src={
+                    conversation.participant_photo
+                      ? `${BACKEND_BASE_URL}/uploads/${conversation.participant_photo}`
+                      : "https://placehold.co/28x28?text=?"
+                  }
+                  alt="Perfil"
+                  className="msg-avatar"
+                />
+              )}
+              <div
+                className={`message-bubble ${
+                  msg.sender_id === user.id ? "sent" : "received"
+                }`}
+              >
+                {msg.content}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="no-messages">Nenhuma mensagem ainda...</div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* ===== INPUT ===== */}
+      <form className="chat-input" onSubmit={handleSendMessage}>
+        <input
+          type="text"
+          placeholder="Mensagem..."
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          disabled={isSending}
+        />
+        <button type="submit" disabled={isSending}>
+          <i className="bi bi-send-fill"></i>
+        </button>
       </form>
     </div>
   );

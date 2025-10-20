@@ -1,0 +1,187 @@
+/* ============================================= */
+/* 🌵 CHAT WIDGET — BOTÃO FECHADO (Versão Final) */
+/* ============================================= */
+
+.chat-widget {
+  position: fixed;
+  bottom: 25px;
+  right: 45px;
+    z-index: 1100;
+ 
+}
+
+/* Botão flutuante principal */
+.chat-widget-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(145deg, #222, #2e2e2e);
+  border: none;
+  border-radius: 999px;
+  padding: 10px 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+  min-width: 200px !important;
+  height: 52px;
+  width: 250px;
+}
+
+
+/* ============================== */
+/* Ícone Messenger dourado centrado */
+/* ============================== */
+.chat-widget-icon {
+  width: 25px;
+  height: 25px;
+  background: radial-gradient(circle at 30% 30%, #ffd700, #d4af37 70%);
+  color: #000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.35), 0 6px 18px rgba(0,0,0,0.25);
+  flex-shrink: 0;
+  font-weight: 700px;
+}
+
+.chat-widget-icon i {
+  position: relative;
+  left: 3px; /* 👈 ajuste fino horizontal */
+  top: 0.5px;
+  line-height: 0;
+    font-size: 1rem;
+    color: rgb(0, 0, 0)
+}
+
+/* ============================== */
+/* Texto “Mensagens”              */
+/* ============================== */
+.chat-widget-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chat-widget-label {
+  color: #ffd700;
+  font-weight: 700;
+  font-size: 0.98rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-widget-badge {
+  background: #ff5252;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 4px 7px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+/* ============================== */
+/* Avatar redondo à direita       */
+/* ============================== */
+.chat-widget-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start !important;
+  justify-content: center;
+  position: relative;
+  left: 50px;
+}
+
+.chat-widget-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* ============================== */
+/* Hover Suave e Responsivo       */
+/* ============================== */
+.chat-widget-button:active {
+  transform: translateY(-1px) scale(0.995);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.28);
+}
+
+/* Efeitos de hover no avatar */
+.chat-widget-button:hover .chat-widget-avatar {
+  border-color: rgba(255, 215, 0, 0.5);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+}
+
+.chat-widget-button:hover .chat-widget-avatar img {
+  transform: scale(1.05);
+}
+
+/* Janela do chat aberta */
+.chat-widget-window {
+  position: fixed;
+  bottom: 20px;
+  right: 25px;
+  width: 380px;
+  height: 550px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4),
+              0 2px 4px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1px 20px;
+  background: linear-gradient(145deg, #2a2a2a, #323232);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  height: 55px;
+}
+
+.chat-widget-header h5 {
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #ffd700;
+  font-size: 45px !important;
+  cursor: pointer;
+  bottom: 4px;
+  position: relative;
+}
+
+.close-btn:hover {
+  opacity: 0.8;
+}
+@media (max-width: 992px) {
+  .chat-widget {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1300px) {
+  /* Em telas médias escondemos o texto para economizar espaço */
+  .chat-widget-label { display: none; }
+  .chat-widget { right: 18px; bottom: 18px; }
+  .chat-widget-button { min-width: 0; padding: 10px; height: 48px; }
+}

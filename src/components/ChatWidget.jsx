@@ -1,93 +1,135 @@
-// src/components/ChatWidget.jsx (VERSÃO FINAL E CORRIGIDA)
+// =============================================================
+// 🌵 ChatWidget.jsx — Gadget flutuante estilo Instagram Direct
+// =============================================================
 
-import React, { useState, useEffect } from 'react';
-import apiClient from '../api/api';
-import ConversationList from './ConversationList';
-import ChatWindow from './ChatWindow';
-import { useNotifications } from '../context/NotificationContext'; // Importação para o badge global
+import React, { useState, useEffect } from "react";
+import apiClient from "../api/api";
+import ConversationList from "./ConversationList";
+import ChatWindow from "./ChatWindow";
+import { useNotifications } from "../context/NotificationContext";
+import useAuth from "../hooks/useAuth";
+import "../styles/ChatWidget.css";
 
 const ChatWidget = () => {
-    // Pega a contagem global de não lidas e a função de limpeza
-    const { unreadCount, clearNotifications } = useNotifications(); 
-    
-    const [isOpen, setIsOpen] = useState(false); // Estado para abrir/fechar o widget
-    const [conversations, setConversations] = useState([]); // Lista de conversas
-    const [loading, setLoading] = useState(true); // Estado de carregamento
-    const [activeConversation, setActiveConversation] = useState(null); // Conversa selecionada
+  // Contextos globais
+  const { unreadCount, clearNotifications } = useNotifications();
+  const { user } = useAuth();
 
-    // =========================================================
-    // 1. BUSCA CONVERSAS AO ABRIR O WIDGET
-    // =========================================================
-    useEffect(() => {
-        // Busca apenas se o widget for aberto E a lista estiver vazia
-        if (isOpen && conversations.length === 0) { 
-            setLoading(true); // Inicia o carregamento
-            apiClient.get('/conversations')
-                .then(response => {
-                    setConversations(response.data.conversations || []); // Define as conversas
-                })
-                .catch(err => {
-                    console.error("Erro ao buscar conversas para o widget:", err); // Loga o erro
-                })
-                .finally(() => {
-                    setLoading(false); // Finaliza o carregamento
-                });
-        }
-    }, [isOpen, conversations.length]); // Dependências
+  // Estados
+  const [isOpen, setIsOpen] = useState(false);
+  const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeConversation, setActiveConversation] = useState(null);
 
-    // =========================================================
-    // 2. HANDLERS
-    // =========================================================
-    const handleSelectConversation = (convo) => {
-        setActiveConversation(convo); // Define a conversa ativa
-        // ✅ AÇÃO: Limpa a contagem GERAL ao abrir uma conversa no widget
-        clearNotifications(); // Limpa as notificações globais
+  // =========================================================
+  // 1️⃣ Buscar conversas ao abrir o widget
+  // =========================================================
+  useEffect(() => {
+    if (isOpen && conversations.length === 0) {
+      setLoading(true);
+      apiClient
+        .get("/conversations")
+        .then((response) => {
+          setConversations(response.data.conversations || []);
+        })
+        .catch((err) => {
+          console.error("Erro ao buscar conversas para o widget:", err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [isOpen, conversations.length]);
+
+  // =========================================================
+  // 2️⃣ Selecionar conversa
+  // =========================================================
+  const handleSelectConversation = (convo) => {
+    // Normaliza os dados para o ChatWindow
+    const formattedConversation = {
+      id: convo.conversation_id, // campo correto
+      participant_name: convo.participant_name,
+      participant_photo: convo.participant_photo,
     };
 
-    const handleClose = () => {
-        setIsOpen(false); // Fecha o widget
-        setActiveConversation(null); // Limpa a conversa ativa
-    };
+    setActiveConversation(formattedConversation);
+    clearNotifications();
+  };
 
-    return (
-        <div className="chat-widget">
-            {isOpen ? (
-                // --- Janela Aberta ---
-                <div className="chat-widget-window">
-                    {activeConversation ? (
-                        <ChatWindow 
-                            conversation={activeConversation} 
-                            onBack={() => setActiveConversation(null)} 
-                        />
-                    ) : (
-                        <>
-                            <div className="chat-widget-header">
-                                <h5>Mensagens</h5>
-                                <button className="close-btn" onClick={handleClose}>&times;</button>
-                            </div>
-                            {loading ? (
-                                <p className="text-center text-subtle p-3">Carregando...</p>
-                            ) : (
-                                <ConversationList 
-                                    conversations={conversations}
-                                    onSelectConversation={handleSelectConversation}
-                                    // Passamos null para selectedConversation, pois o widget não a exibe
-                                />
-                            )}
-                        </>
-                    )}
-                </div>
-            ) : (
-                // --- Botão Fechado ---
-                <button className="chat-widget-button" onClick={() => setIsOpen(true)}>
-                    <i className="bi bi-send"></i>
-                    <span>Mensagens</span>
-                    {/* ✅ NOVO: RENDERIZA O BADGE DE NOTIFICAÇÃO GLOBAL */}
-                    {unreadCount > 0 && <span className="notification-badge ms-2">{unreadCount}</span>}
+  // =========================================================
+  // 3️⃣ Fechar widget
+  // =========================================================
+  const handleClose = () => {
+    setIsOpen(false);
+    setActiveConversation(null);
+  };
+
+  // =========================================================
+  // 4️⃣ Render principal
+  // =========================================================
+  return (
+    <div className="chat-widget">
+      {isOpen ? (
+        // ================================
+        // 💬 Janela aberta
+        // ================================
+        <div className="chat-widget-window">
+          {activeConversation && activeConversation.id ? (
+            <ChatWindow
+              conversation={activeConversation}
+              user={user}
+              onBack={() => setActiveConversation(null)}
+            />
+          ) : (
+            <>
+              <div className="chat-widget-header">
+                <h5>Mensagens</h5>
+                <button className="close-btn" onClick={handleClose}>
+                  &times;
                 </button>
-            )}
+              </div>
+
+              {loading ? (
+                <p className="text-center text-subtle p-3">Carregando...</p>
+              ) : (
+                <ConversationList
+                  conversations={conversations}
+                  onSelectConversation={handleSelectConversation}
+                  selectedConversation={activeConversation}
+                />
+              )}
+            </>
+          )}
         </div>
-    );
+      ) : (
+        // ================================
+        // 🟡 Botão flutuante fechado
+        // ================================
+        <button className="chat-widget-button" onClick={() => setIsOpen(true)}>
+          <div className="chat-widget-icon">
+            <i className="bi bi-messenger"></i>
+          </div>
+
+          <span className="chat-widget-label">Mensagens</span>
+
+          {/* Avatar do usuário logado */}
+          <div className="chat-widget-avatar">
+            <img
+              src={
+                user?.profilePhoto
+                  ? `${import.meta.env.VITE_BACKEND_BASE_URL}/uploads/${user.profilePhoto}`
+                  : "https://placehold.co/40x40?text=U"
+              }
+              alt="Usuário"
+            />
+            {unreadCount > 0 && (
+              <span className="unread-badge">{unreadCount}</span>
+            )}
+          </div>
+        </button>
+      )}
+    </div>
+  );
 };
 
 export default ChatWidget;

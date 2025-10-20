@@ -1,0 +1,25 @@
+/* ============================================================= */
+/* 🧩 Correção de sobreposição + alinhamento perfeito */
+/* ============================================================= */
+.ig-sidebar {
+  position: relative;
+  z-index: 2000; /* garante que a sidebar esteja acima do conteúdo */
+}
+
+.create-dropdown {
+  position: absolute; /* mantém dentro da sidebar, mas respeita o botão */
+  top: 50%; /* começando centralizado em relação ao botão */
+  left: 100%; /* ao lado direito da sidebar */
+  transform: translateY(-50%) translateX(8px); /* ligeiro ajuste de posição */
+  width: 180px;
+  background: rgba(20, 20, 20, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  z-index: 9999; /* acima do conteúdo principal */
+  animation: fadeIn 0.15s ease;
+}

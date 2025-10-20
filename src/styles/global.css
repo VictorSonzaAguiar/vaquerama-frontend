@@ -507,3 +507,60 @@ a { text-decoration: none; color: var(--text-color); }
   padding: 2px 7px;
   margin-left: auto;
 }
+
+/* ================================= */
+/* BOTTOM NAV - WHITE BOLD STYLE */
+/* ================================= */
+
+.bottom-nav-bold {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  height: 74px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.7);
+  z-index: 1050;
+}
+
+.nav-link-bold {
+  color: #ffffff;
+  opacity: 0.9;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-link-bold svg {
+  stroke-width: 2.5; /* deixa os traços mais grossos */
+  transition: stroke 0.3s ease, transform 0.3s ease, color 0.3s ease;
+}
+
+.nav-link-bold:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.active-bold {
+  color: var(--accent-color) !important;
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.7));
+}
+
+/* brilho suave pulsante no ativo */
+@keyframes goldPulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.5)); }
+  50% { filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.9)); }
+}
+.active-bold svg {
+  animation: goldPulse 2.2s infinite ease-in-out;
+}
+
+/* espaço inferior extra pra feed */
+@media (max-width: 991.98px) {
+  .main-content {
+    padding-bottom: 74px;
+  }
+}

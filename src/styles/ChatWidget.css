@@ -1,13 +1,12 @@
 /* ============================================= */
-/* 🌵 CHAT WIDGET — BOTÃO FECHADO (Versão Final) */
+/* 🌵 CHAT WIDGET — CSS CORRETO PARA 2 AVATARES  */
 /* ============================================= */
 
 .chat-widget {
   position: fixed;
   bottom: 25px;
   right: 45px;
-    z-index: 1100;
- 
+  z-index: 1100;
 }
 
 /* Botão flutuante principal */
@@ -27,7 +26,6 @@
   width: 250px;
 }
 
-
 /* ============================== */
 /* Ícone Messenger dourado centrado */
 /* ============================== */
@@ -41,30 +39,23 @@
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
-  box-shadow: inset 0 0 6px rgba(0,0,0,0.35), 0 6px 18px rgba(0,0,0,0.25);
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.25);
   flex-shrink: 0;
   font-weight: 700px;
 }
 
 .chat-widget-icon i {
   position: relative;
-  left: 3px; /* 👈 ajuste fino horizontal */
+  left: 3px;
   top: 0.5px;
   line-height: 0;
-    font-size: 1rem;
-    color: rgb(0, 0, 0)
+  font-size: 1rem;
+  color: rgb(0, 0, 0)
 }
 
 /* ============================== */
 /* Texto “Mensagens”              */
 /* ============================== */
-.chat-widget-body {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
 .chat-widget-label {
   color: #ffd700;
   font-weight: 700;
@@ -72,58 +63,68 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-grow: 1; /* Isso empurra a pilha de avatar para a direita */
 }
 
-.chat-widget-badge {
+/* ============================== */
+/* NOVA PILHA DE AVATARES         */
+/* ============================== */
+.chat-widget-avatar-stack {
+  position: relative;
+  width: 48px;  /* Largura para 1.5 avatares */
+  height: 30px; /* Altura de 1 avatar */
+  flex-shrink: 0;
+  margin-right: -5px; /* Puxa levemente para a borda */
+}
+
+/* Estilo base para AMBOS avatares */
+.avatar-stacked {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #222; /* Borda escura para dar separação */
+  position: absolute;
+  top: 0;
+}
+
+/* Avatar da frente (o mais recente) */
+.avatar-1 {
+  right: 0; /* Alinha à direita da pilha */
+  z-index: 2;
+}
+
+/* Avatar de trás (o segundo mais recente) */
+.avatar-2 {
+  left: 0; /* Alinha à esquerda da pilha */
+  z-index: 1;
+}
+
+/* ============================== */
+/* EMBLEMA DE NÃO LIDO (BADGE)    */
+/* ============================== */
+.unread-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px; /* Canto superior direito do avatar da FRENTE */
+  z-index: 3;
   background: #ff5252;
   color: #fff;
   font-weight: 700;
   font-size: 0.75rem;
   padding: 4px 7px;
   border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  border: 1px solid #111;
 }
 
-/* ============================== */
-/* Avatar redondo à direita       */
-/* ============================== */
-.chat-widget-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.06);
-  flex-shrink: 0;
-  display: flex;
-  align-items: flex-start !important;
-  justify-content: center;
-  position: relative;
-  left: 50px;
-}
-
-.chat-widget-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
 
 /* ============================== */
 /* Hover Suave e Responsivo       */
 /* ============================== */
 .chat-widget-button:active {
   transform: translateY(-1px) scale(0.995);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.28);
-}
-
-/* Efeitos de hover no avatar */
-.chat-widget-button:hover .chat-widget-avatar {
-  border-color: rgba(255, 215, 0, 0.5);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
-}
-
-.chat-widget-button:hover .chat-widget-avatar img {
-  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.28);
 }
 
 /* Janela do chat aberta */
@@ -136,7 +137,7 @@
   background: #1a1a1a;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4),
-              0 2px 4px rgba(0, 0, 0, 0.2);
+    0 2px 4px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   z-index: 1100;
   display: flex;
@@ -173,6 +174,7 @@
 .close-btn:hover {
   opacity: 0.8;
 }
+
 @media (max-width: 992px) {
   .chat-widget {
     display: none !important;
@@ -181,7 +183,18 @@
 
 @media (max-width: 1300px) {
   /* Em telas médias escondemos o texto para economizar espaço */
-  .chat-widget-label { display: none; }
-  .chat-widget { right: 18px; bottom: 18px; }
-  .chat-widget-button { min-width: 0; padding: 10px; height: 48px; }
+  .chat-widget-label {
+    display: none;
+  }
+
+  .chat-widget {
+    right: 18px;
+    bottom: 18px;
+  }
+
+  .chat-widget-button {
+    min-width: 0;
+    padding: 10px;
+    height: 48px;
+  }
 }

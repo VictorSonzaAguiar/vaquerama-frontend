@@ -1,5 +1,5 @@
 // =============================================================
-// 🌵 ChatWidget.jsx — Gadget flutuante estilo Instagram Direct
+// 🌵 ChatWidget.jsx — CORRIGIDO (Mostra 2 avatares sobrepostos)
 // =============================================================
 
 import React, { useState, useEffect } from "react";
@@ -9,6 +9,7 @@ import ChatWindow from "./ChatWindow";
 import { useNotifications } from "../context/NotificationContext";
 import useAuth from "../hooks/useAuth";
 import "../styles/ChatWidget.css";
+const BACKEND_BASE_URL = "http://localhost:3000";
 
 const ChatWidget = () => {
   // Contextos globais
@@ -22,24 +23,29 @@ const ChatWidget = () => {
   const [activeConversation, setActiveConversation] = useState(null);
 
   // =========================================================
-  // 1️⃣ Buscar conversas ao abrir o widget
+  // 1️⃣ Buscar conversas (CORRIGIDO)
   // =========================================================
   useEffect(() => {
-    if (isOpen && conversations.length === 0) {
-      setLoading(true);
-      apiClient
-        .get("/conversations")
-        .then((response) => {
-          setConversations(response.data.conversations || []);
-        })
-        .catch((err) => {
-          console.error("Erro ao buscar conversas para o widget:", err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [isOpen, conversations.length]);
+    // Se não há usuário logado, não faz nada
+    if (!user?.id) return;
+
+    setLoading(true);
+    apiClient
+      .get("/conversations")
+      .then((response) => {
+        setConversations(response.data.conversations || []);
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar conversas para o widget:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    // Gatilhos:
+    // 1. Quando o user.id estiver disponível (primeiro carregamento)
+    // 2. Sempre que a contagem de não lidos mudar (nova mensagem)
+  }, [user?.id, unreadCount]);
 
   // =========================================================
   // 2️⃣ Selecionar conversa
@@ -105,28 +111,74 @@ const ChatWidget = () => {
         // ================================
         // 🟡 Botão flutuante fechado
         // ================================
-        <button className="chat-widget-button" onClick={() => setIsOpen(true)}>
-          <div className="chat-widget-icon">
-            <i className="bi bi-messenger"></i>
-          </div>
+        (() => {
+          // Pega as DUAS últimas conversas
+          const firstConvo =
+            conversations.length > 0 ? conversations[0] : null;
+          const secondConvo =
+            conversations.length > 1 ? conversations[1] : null;
 
-          <span className="chat-widget-label">Mensagens</span>
+          return (
+            <button
+              className="chat-widget-button"
+              onClick={() => setIsOpen(true)}
+            >
+              <div className="chat-widget-icon">
+                <i className="bi bi-messenger"></i>
+              </div>
 
-          {/* Avatar do usuário logado */}
-          <div className="chat-widget-avatar">
-            <img
-              src={
-                user?.profilePhoto
-                  ? `${import.meta.env.VITE_BACKEND_BASE_URL}/uploads/${user.profilePhoto}`
-                  : "https://placehold.co/40x40?text=U"
-              }
-              alt="Usuário"
-            />
-            {unreadCount > 0 && (
-              <span className="unread-badge">{unreadCount}</span>
-            )}
-          </div>
-        </button>
+              <span className="chat-widget-label">Mensagens</span>
+
+              {/* === PILHA DE AVATARES === */}
+              <div className="chat-widget-avatar-stack">
+                
+                {/* Avatar 2 (Atrás) */}
+                {secondConvo && (
+                  <img
+                    src={
+                      secondConvo.participant_photo
+                        ? `${BACKEND_BASE_URL}/uploads/${secondConvo.participant_photo}`
+                        : "https://placehold.co/40x40?text=U"
+                    }
+                    alt="Conversa anterior"
+                    className="avatar-stacked avatar-2"
+                  />
+                )}
+
+                {/* Avatar 1 (Frente) */}
+                {firstConvo && (
+                  <img
+                    src={
+                      firstConvo.participant_photo
+                        ? `${BACKEND_BASE_URL}/uploads/${firstConvo.participant_photo}`
+                        : "https://placehold.co/40x40?text=U"
+                    }
+                    alt="Última conversa"
+                    className="avatar-stacked avatar-1"
+                  />
+                )}
+
+                {/* Fallback: Se não houver NENHUMA conversa, mostra seu user */}
+                {!firstConvo && (
+                  <img
+                    src={
+                      user?.profile_photo_url
+                        ? `${BACKEND_BASE_URL}/uploads/${user.profile_photo_url}`
+                        : "https://placehold.co/40x40?text=U"
+                    }
+                    alt="Usuário"
+                    className="avatar-stacked avatar-1"
+                  />
+                )}
+
+                {/* Emblema de não lido */}
+                {unreadCount > 0 && (
+                  <span className="unread-badge">{unreadCount}</span>
+                )}
+              </div>
+            </button>
+          );
+        })()
       )}
     </div>
   );

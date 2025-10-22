@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import io from "socket.io-client";
 
+
+import { useSocket } from "../context/SocketContext";
 import useAuth from "../hooks/useAuth";
 import { useNotifications } from "../context/NotificationContext";
 
@@ -9,13 +10,13 @@ import Sidebar from "./Sidebar";
 import BottomNav from "./BottomNav";
 import ChatWidget from "./ChatWidget";
 
-const SOCKET_SERVER_URL = "http://localhost:3000";
+
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
   const { user } = useAuth();
-  const { addNotification, unreadCount } = useNotifications();
-  const socketRef = useRef(null);
+  const { addNotification, unreadCount, addMessageNotification, unreadMessageCount } = useNotifications();
+const socket = useSocket();
 
   const isMessagesPage = location.pathname.startsWith("/messages");
 
@@ -40,22 +41,27 @@ const AppLayout = ({ children }) => {
     [effectiveCollapsed]
   );
 
-  useEffect(() => {
-    if (user && user.id) {
-      if (!socketRef.current) socketRef.current = io(SOCKET_SERVER_URL);
-      socketRef.current.emit("register_user", user.id);
-      socketRef.current.on("new_message_notification", () => addNotification());
-      return () => {
-        socketRef.current?.disconnect();
-        socketRef.current = null;
-      };
-    }
-  }, [user, addNotification]);
+  // Efeito 1: Gerencia a CONEXÃO do socket (depende apenas do 'user')
+// Efeito 1: Gerencia os OUVINTES GLOBAIS (notificação de chat)
+useEffect(() => {
+  // Se não temos o socket central, não faz nada
+  if (!socket) return;
+
+  // Ouve por "nova mensagem" (para mostrar o emblema)
+  const handleNotification = () => addMessageNotification(); // <-- CORRIGIDO
+  socket.on("new_message_notification", handleNotification);
+
+  // Limpa o ouvinte
+  return () => {
+    socket.off("new_message_notification", handleNotification);
+  };
+}, [socket, addMessageNotification]); // <-- CORRIGIDO
 
   useEffect(() => {
-    document.title =
-      unreadCount > 0 ? `(${unreadCount}) Vaquerama` : "Vaquerama";
-  }, [unreadCount]);
+  const totalUnread = (unreadCount || 0) + (unreadMessageCount || 0);
+  document.title =
+    totalUnread > 0 ? `(${totalUnread}) Vaquerama` : "Vaquerama";
+}, [unreadCount, unreadMessageCount]); // <-- Adiciona a nova dependência;
 
   // ============================================================
   // 🚫 Remover barra de sugestões em rotas específicas

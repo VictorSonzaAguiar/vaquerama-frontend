@@ -1,75 +1,66 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { io } from "socket.io-client";
 import api from "../api/api.js";
-import useAuth from "../hooks/useAuth";
+import { useCallback } from "react";
+import { useSocket } from "./SocketContext";
 
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { user } = useAuth();
+  const socket = useSocket();
 
-  // 👉 Adiciona nova notificação
-  const addNotification = (newNotification) => {
-    setNotifications((prev) => [newNotification, ...prev]);
-    setUnreadCount((prev) => prev + 1);
-  };
-
+const addNotification = useCallback((newNotification) => {
+  setNotifications((prev) => [newNotification, ...prev]);
+  setUnreadCount((prev) => prev + 1);
+}, []); // <-- Adiciona dependência vazia
   // 👉 Marcar todas como lidas (chama backend)
-  const clearNotifications = async () => {
-    try {
-      await api.put("/notifications/read/all"); // chama backend
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, is_read: true }))
-      );
-      setUnreadCount(0);
-    } catch (err) {
-      console.error("Erro ao limpar notificações:", err);
-    }
+ const clearNotifications = useCallback(async () => {
+  try {
+    await api.put("/notifications/read/all"); // chama backend
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, is_read: true }))
+    );
+    setUnreadCount(0);
+  } catch (err) {
+    console.error("Erro ao limpar notificações:", err);
+  }
+}, []); // <-- Adiciona dependência vazia
+
+ const fetchNotifications = useCallback(async () => {
+  // (Não precisamos mais do 'if (!user) return;' pois o 'useEffect' abaixo vai cuidar disso)
+  try {
+    const res = await api.get("/notifications");
+    setNotifications(res.data);
+    const unread = res.data.filter((n) => !n.is_read).length;
+    setUnreadCount(unread);
+  } catch (err) {
+    console.error("Erro ao carregar notificações:", err);
+  }
+}, []); // <-- Adiciona dependência vazia
+ useEffect(() => {
+  // Se não temos o socket central, não faz nada
+  if (!socket) return;
+
+  // 1. Busca inicial
+  fetchNotifications();
+
+  // 2. Ouve por notificações (de likes, comentários, etc.)
+  const handleNotification = (data) => addNotification(data);
+  socket.on("notification", handleNotification);
+
+  // 3. Limpa o ouvinte
+  return () => {
+    socket.off("notification", handleNotification);
   };
-
-  // 👉 Buscar notificações do backend
-  const fetchNotifications = async () => {
-    if (!user) return;
-    try {
-      const res = await api.get("/notifications");
-      setNotifications(res.data);
-      const unread = res.data.filter((n) => !n.is_read).length;
-      setUnreadCount(unread);
-    } catch (err) {
-      console.error("Erro ao carregar notificações:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (!user) return;
-
-    // Conecta socket
-    const socket = io(import.meta.env.VITE_API_URL.replace("/api", ""), {
-      transports: ["websocket"],
-    });
-
-    socket.emit("register_user", user.id);
-    socket.on("notification", (data) => {
-      addNotification(data);
-    });
-
-    // Busca inicial e polling a cada 10s
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 10000);
-
-    return () => {
-      clearInterval(interval);
-      socket.disconnect();
-    };
-  }, [user]);
+}, [socket, fetchNotifications, addNotification]); // <-- Depende do socket
 
   return (
     <NotificationContext.Provider
       value={{
         notifications,
         unreadCount,
+        addNotification,
         setUnreadCount,
         clearNotifications,
       }}
